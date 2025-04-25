@@ -1,0 +1,59 @@
+function tour_search_results_shortcode() {
+    $diadiem = $_GET['diadiem'] ?? '';
+    $khoihanh = $_GET['khoihanh'] ?? '';
+
+    if (!$diadiem && !$khoihanh) {
+        return "<p>Vui lòng chọn thông tin tìm kiếm từ form phía trên.</p>";
+    }
+
+    $args = [
+        'post_type' => 'tour',
+        'posts_per_page' => -1,
+        'meta_query' => [
+            'relation' => 'AND',
+        ],
+    ];
+
+    if ($diadiem) {
+        $args['meta_query'][] = [
+            'key' => 'diadiem',
+            'value' => $diadiem,
+            'compare' => 'LIKE',
+        ];
+    }
+
+    if ($khoihanh) {
+        $args['meta_query'][] = [
+            'key' => 'khoihanhtu',
+            'value' => $khoihanh,
+            'compare' => 'LIKE',
+        ];
+    }
+
+    $query = new WP_Query($args);
+
+    ob_start();
+
+    if ($query->have_posts()) {
+        echo '<div class="tour-results">';
+        while ($query->have_posts()) {
+            $query->the_post();
+            $img = get_field('anh_dai_dien_tour');
+            echo '<div class="tour-item" style="margin-bottom:30px; border-bottom:1px solid #eee; padding-bottom:20px;">';
+            echo '<h3 style="margin-bottom:10px;">' . get_the_title() . '</h3>';
+            if ($img) {
+                echo '<img src="' . esc_url($img['url']) . '" alt="' . esc_attr($img['alt']) . '" style="max-width:300px; display:block; margin-bottom:10px;">';
+            }
+            echo '<p>' . get_field('mo_ta_ngan') . '</p>';
+            echo '<a href="' . get_permalink() . '" style="color:#f26522; font-weight:bold;">Xem chi tiết</a>';
+            echo '</div>';
+        }
+        echo '</div>';
+        wp_reset_postdata();
+    } else {
+        echo '<p>Không tìm thấy tour phù hợp với tiêu chí đã chọn.</p>';
+    }
+
+    return ob_get_clean();
+}
+add_shortcode('tour_search_results', 'tour_search_results_shortcode');
