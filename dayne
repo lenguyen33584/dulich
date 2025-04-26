@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Gọi Bot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .product {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 20px;
+      max-width: 300px;
+    }
+    .price {
+      font-weight: bold;
+      color: #d60000;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #0084ff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fcc;
+    }
+
+    /* Popup overlay toàn màn hình */
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    #overlay img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border: 4px solid white;
+      border-radius: 10px;
+    }
+    #overlay:target {
+      display: flex;
+    }
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 30px;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="product">
+    <h3>Tên sản phẩm A</h3>
+    <p>Giá: <span class="price" data-price="120000">120.000đ</span></p>
+    <button onclick="runBotWithPrice(this)">Mua ngay</button>
+  </div>
+
+  <!-- Popup overlay -->
+  <div id="overlay">
+    <div class="close-btn" onclick="closeOverlay()">×</div>
+    <img id="qr-image" src="" alt="Ảnh từ bot" />
+  </div>
+
+  <script>
+    function runBotWithPrice(buttonElement) {
+      const price = buttonElement.closest('.product').querySelector('.price').dataset.price;
+
+      fetch("https://heather-radius-offensive-majority.trycloudflare.com/run-bot", {
+        method: "POST",
+        body: new URLSearchParams({ price })
+      })
+      .then(res => res.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        document.getElementById("qr-image").src = url;
+        document.getElementById("overlay").style.display = "flex"; // 👈 Hiện overlay
+      })
+      .catch(err => alert("Lỗi gọi bot: " + err));
+    }
+
+    function closeOverlay() {
+      document.getElementById("overlay").style.display = "none";
+    }
+  </script>
+
+</body>
+</html>
