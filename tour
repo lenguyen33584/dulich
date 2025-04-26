@@ -1,61 +1,104 @@
-function hotel_filter_form_shortcode() {
-    ob_start();
-    ?>
+<?php
+/**
+ * Template for single hotel post type: single-khach_san.php
+ */
 
-    <div style="max-width: 1140px; margin: auto;">
-    <form action="/tim-kiem-khach-san" method="get" style="background: #fff; padding: 24px 32px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+get_header();
+$post_id = get_the_ID();
+$gia = get_field('gia', $post_id);
+$diem = get_field('diem_danh_gia', $post_id);
+$so_danh_gia = get_field('so_danh_gia', $post_id);
+$tien_ich = get_field('tien_ich', $post_id);
+$noi_bat = get_field('noi_bat', $post_id);
+?>
 
-        <!-- Địa điểm -->
-        <div style="flex: 1;">
-            <label style="font-weight: 500; font-size: 14px; color: #888;">ĐỊA ĐIỂM</label>
-            <select name="location" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-                <option value="">Chọn tỉnh/thành</option>
-                <?php
-                $terms = get_terms([
-                    'taxonomy' => 'vung_mien',
-                    'hide_empty' => false,
-                ]);
-                foreach ($terms as $term) {
-                    $parent = get_term($term->parent, 'vung_mien');
-                    $grandparent = $parent ? get_term($parent->parent, 'vung_mien') : null;
-                    if ($grandparent) {
-                        echo '<option value="' . esc_attr($term->slug) . '">' . esc_html($term->name) . '</option>';
-                    }
-                }
-                ?>
-            </select>
-        </div>
-
-        <!-- Nhận phòng -->
-        <div style="flex: 1;">
-            <label style="font-weight: 500; font-size: 14px; color: #888;">NHẬN PHÒNG</label>
-            <input type="date" name="checkin" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-        </div>
-
-        <!-- Trả phòng -->
-        <div style="flex: 1;">
-            <label style="font-weight: 500; font-size: 14px; color: #888;">TRẢ PHÒNG</label>
-            <input type="date" name="checkout" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-        </div>
-
-        <!-- Hành khách -->
-        <div style="flex: 1;">
-            <label style="font-weight: 500; font-size: 14px; color: #888;">HÀNH KHÁCH</label>
-            <div style="display: flex; gap: 8px;">
-                <input type="number" name="adult" min="1" value="2" style="width: 60px; padding: 8px; border-radius: 8px; border: 1px solid #ccc;" placeholder="Người lớn">
-                <input type="number" name="child" min="0" value="0" style="width: 60px; padding: 8px; border-radius: 8px; border: 1px solid #ccc;" placeholder="Trẻ em">
-                <input type="number" name="baby" min="0" value="0" style="width: 60px; padding: 8px; border-radius: 8px; border: 1px solid #ccc;" placeholder="Em bé">
-            </div>
-        </div>
-
-        <!-- Nút tìm -->
-        <div style="flex: 0 0 auto;">
-            <button type="submit" style="padding: 12px 24px; background-color: #e1703a; color: #fff; border: none; border-radius: 8px; font-weight: bold;">Tìm ngay</button>
-        </div>
-    </form>
+<div style="max-width:1140px;margin:auto;padding:24px;">
+  <!-- Ảnh đại diện -->
+  <div style="display:flex;gap:16px;align-items:flex-start;">
+    <?php if (has_post_thumbnail()) : ?>
+      <div style="flex:1;">
+        <?php the_post_thumbnail('full', ['style'=>'width:100%;border-radius:12px;']); ?>
+      </div>
+    <?php endif; ?>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-start;gap:10px;">
+      <h1><?php the_title(); ?></h1>
+      <div style="font-size:14px;margin-bottom:0;">
+        <strong style="color:green;font-size:18px;"><?php echo $diem; ?></strong>
+        <span style="margin-left:8px;">Tuyệt vời - <?php echo $so_danh_gia; ?> đánh giá</span>
+      </div>
+      <div style="color:#e53935;font-size:20px;font-weight:bold;margin:0;">
+        <?php echo number_format($gia, 0, ',', '.'); ?>đ
+      </div>
+      <a href="#noi-dung" style="background:#e1703a;color:white;padding:12px 24px;border-radius:8px;text-align:center;max-width:200px;">Xem giá phòng</a>
     </div>
+  </div>
 
-    <?php
-    return ob_get_clean();
-}
-add_shortcode('hotel_filter_form', 'hotel_filter_form_shortcode');
+  <!-- Tabs chuyển mục -->
+  <ul style="display:flex;list-style:none;padding:0;margin:24px 0;gap:24px;border-bottom:2px solid #eee;">
+    <li><a href="#tien-ich">Tiện ích</a></li>
+    <li><a href="#noi-bat">Điểm nổi bật</a></li>
+    <li><a href="#noi-dung">Thông tin & Đánh giá</a></li>
+  </ul>
+
+  <!-- Tiện ích -->
+  <div id="tien-ich">
+    <h2>Tiện ích khách sạn</h2>
+    <?php if ($tien_ich): ?>
+      <div style="columns:3;-webkit-columns:3;-moz-columns:3;max-height:150px;overflow:hidden;" id="list-tien-ich">
+        <ul style="padding-left:20px;">
+        <?php foreach ($tien_ich as $ti): ?>
+          <li><?php echo esc_html($ti); ?></li>
+        <?php endforeach; ?>
+        </ul>
+      </div>
+      <button onclick="document.getElementById('list-tien-ich').style.maxHeight='none';this.style.display='none';" style="margin-top:10px;background:none;color:#e1703a;border:none;cursor:pointer;">Xem thêm</button>
+    <?php endif; ?>
+  </div>
+
+  <!-- Điểm nổi bật -->
+  <div id="noi-bat" style="background:#fff5e6;border-left:5px solid #ffc107;padding:16px;margin:24px 0;border-radius:8px;">
+    <h2 style="color:#e1703a;margin-top:0;">Điểm nổi bật <?php the_title(); ?></h2>
+    <ul style="padding-left:20px;">
+      <?php foreach (explode("\n", $noi_bat) as $line): ?>
+        <li><?php echo esc_html($line); ?></li>
+      <?php endforeach; ?>
+    </ul>
+  </div>
+
+  <!-- Nội dung bài viết -->
+  <div id="noi-dung" style="margin-top:40px;">
+    <h2>Thông tin khách sạn</h2>
+    <?php the_content(); ?>
+
+    <div style="margin-top: 40px;">
+  <h2>Đánh giá của Khách hàng</h2>
+  <div style="font-size: 18px; font-weight: bold; color: green;">9.2 <span style="color:#444; font-size:14px;">Tuyệt vời - 62 đánh giá</span></div>
+  <div style="margin: 12px 0 20px;"><a href="#" style="color:#e1703a;">Điểm chi tiết &raquo;</a></div>
+
+  <?php
+  $danh_gia = [
+    ['name' => 'Khánh An', 'score' => '9.4', 'content' => 'Dịch vụ ở đây rất tốt, nhân viên thân thiện, không gian sạch sẽ. Mình ấn tượng nhất là buffet sáng.'],
+    ['name' => 'Văn Khoa', 'score' => '9.4', 'content' => 'Hồ bơi đẹp và rộng. Phòng ốc hiện đại. Mình sẽ quay lại lần sau.'],
+    ['name' => 'Đức Đạt', 'score' => '9.2', 'content' => 'Gia đình mình đã có kỳ nghỉ tuyệt vời. Trẻ em rất thích khu vui chơi ở đây.'],
+    ['name' => 'Thảo Lan', 'score' => '9.2', 'content' => 'Nhân viên hỗ trợ nhiệt tình, bữa ăn ngon. Vị trí gần trung tâm nên rất tiện đi lại.'],
+    ['name' => 'Minh Huy', 'score' => '9.3', 'content' => 'Cảnh quan đẹp, phòng rộng rãi, view nhìn ra biển cực kỳ chill.'],
+    ['name' => 'Ngọc Hà', 'score' => '9.5', 'content' => 'Đi nghỉ dưỡng cùng bạn bè rất vui. Đặc biệt thích không gian nhà hàng và spa.'],
+    ['name' => 'Lê Dương', 'score' => '9.1', 'content' => 'Dịch vụ chuyên nghiệp, mình đánh giá cao sự chu đáo của nhân viên.'],
+    ['name' => 'Hoàng Tú', 'score' => '9.3', 'content' => 'Bữa sáng đa dạng món, phòng được dọn sạch mỗi ngày.'],
+    ['name' => 'Quỳnh Mai', 'score' => '9.0', 'content' => 'Vị trí tiện lợi, gần các điểm tham quan. Giá cả hợp lý.'],
+    ['name' => 'Anh Khoa', 'score' => '9.2', 'content' => 'Chất lượng tốt so với tầm giá. Rất đáng để trải nghiệm.'],
+  ];
+
+  foreach ($danh_gia as $dg) {
+    echo '<div style="border-top:1px solid #eee;padding:16px 0;">';
+    echo '<div style="font-weight:bold;color:green;font-size:16px;">' . esc_html($dg['score']) . ' <span style="color:#555;">Tuyệt vời</span> - ' . esc_html($dg['name']) . '</div>';
+    echo '<p style="margin: 8px 0;">' . esc_html($dg['content']) . '</p>';
+    echo '</div>';
+  }
+  ?>
+</div>
+    <?php endif; ?>
+  </div>
+</div>
+
+<?php get_footer(); ?>
