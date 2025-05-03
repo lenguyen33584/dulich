@@ -87,12 +87,12 @@ function hotel_filter_form_shortcode() {
     </style>
 
     <div class="hotel-search-wrapper">
-    <form action="/tim-kiem-khach-san" method="get" class="hotel-search-form">
+    <form action="" method="get" class="hotel-search-form" onsubmit="return redirectToLocation(event);">
 
         <!-- Địa điểm -->
         <div>
             <label>ĐỊA ĐIỂM</label>
-            <select name="location">
+            <select name="location" id="location-select">
                 <option value="">Chọn tỉnh/thành</option>
                 <?php
                 $terms = get_terms([
@@ -169,22 +169,20 @@ function hotel_filter_form_shortcode() {
 
     </form>
     </div>
+	 <script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const form = document.querySelector('.hotel-search-form');
+			form.addEventListener('submit', function (e) {
+				e.preventDefault();
+				const select = form.querySelector('[name="location"]');
+				const slug = select.options[select.selectedIndex].getAttribute('data-full-slug');
 
-    <script>
-    function updateGuest(type, delta) {
-        const countId = type + '-count';
-        const inputId = type + '-input';
-        const el = document.getElementById(countId);
-        let val = parseInt(el.textContent) + delta;
-        if (val < 0) val = 0;
-        el.textContent = val;
-        document.getElementById(inputId).value = val;
-
-        const total = parseInt(document.getElementById('adult-count').textContent) +
-                      parseInt(document.getElementById('child-count').textContent);
-        document.getElementById('guest-summary-text').textContent = total + ' khách';
-    }
-    </script>
+				if (slug) {
+					window.location.href = '/travelweb/vung_mien_hotel/' + slug + '/';
+				} 
+			});
+		});
+		</script>
 
     <?php
     return ob_get_clean();
