@@ -1,190 +1,270 @@
-// hotel filter
-function hotel_filter_form_shortcode() {
-    ob_start();
-    ?>
+<?php
+/**
+ * Template for displaying single Tour post - Giao diện giống BestPrice
+ */
+get_header();
+global $post;
 
-    <style>
-    .hotel-search-wrapper {
-        max-width: 1140px;
-        margin-top: -100px;
-        position: relative;
-        z-index: 99;
-    }
-    .hotel-search-form {
-        background: #fff;
-        padding: 24px 32px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-    .hotel-search-row {
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-    }
-    .hotel-search-form label {
-        font-weight: 500;
-        font-size: 14px;
-        color: #888;
-        margin-bottom: 4px;
-        display: block;
-    }
-    .hotel-search-form select,
-    .hotel-search-form input {
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-    }
-    .guest-summary {
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        cursor: pointer;
-    }
-    .guest-box {
-        position: absolute;
-        background: white;
-        border: 1px solid #ddd;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-        padding: 15px;
-        border-radius: 10px;
-        display: none;
-        top: 100%;
-        width: 260px;
-        margin-top: 5px;
-        z-index: 100;
-    }
-    .guest-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .guest-counter button {
-        background: #eee;
-        border: none;
-        padding: 4px 10px;
-        border-radius: 50%;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    .guest-counter span {
-        margin: 0 10px;
-        font-weight: bold;
-    }
-    .search-button button {
-        padding: 12px 24px;
-        background-color: #e1703a;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    </style>
+// Lấy các trường từ ACF
+$img           = get_field('anh_dai_dien_tour');
+$gia           = get_field('gia_tour');
+$thoi_gian     = get_field('thoi_gian');
+$khoi_hanh     = get_field('khoihanh');
+$diem_den      = get_field('diemden');
+$phuong_tien   = get_field('phuong_tien');
+$ma_tour       = get_field('ma_tour');
+$lich_trinh    = get_field('lich_trinh');
+$bao_gom       = get_field('bao_gom');
+$khong_bao_gom = get_field('khong_bao_gom');
+$chinh_sach    = get_field('chinh_sach');
+$luu_y         = get_field('luu_y');
 
-    <div class="hotel-search-wrapper">
-    <form action="" method="get" class="hotel-search-form" onsubmit="return redirectToLocation(event);">
-
-        <!-- Địa điểm -->
-        <div>
-            <label>ĐỊA ĐIỂM</label>
-            <select name="location" id="location-select">
-                <option value="">Chọn tỉnh/thành</option>
-                <?php
-                $terms = get_terms([
-                    'taxonomy' => 'vung_mien_hotel',
-                    'hide_empty' => false,
-                ]);
-                foreach ($terms as $term) {
-                    $parent = get_term($term->parent, 'vung_mien_hotel');
-                    $grandparent = $parent ? get_term($parent->parent, 'vung_mien_hotel') : null;
-                    if ($grandparent) {
-                        echo '<option value="' . esc_attr($term->slug) . '">' . esc_html($term->name) . '</option>';
-                    }
-                }
-                ?>
-            </select>
-        </div>
-
-        <!-- Hàng dưới: ngày + khách + nút -->
-        <div class="hotel-search-row">
-            <!-- Nhận phòng -->
-            <div style="flex: 1; min-width: 200px;">
-                <label>NHẬN PHÒNG</label>
-                <input type="date" name="checkin">
-            </div>
-
-            <!-- Trả phòng -->
-            <div style="flex: 1; min-width: 200px;">
-                <label>TRẢ PHÒNG</label>
-                <input type="date" name="checkout">
-            </div>
-
-            <!-- Hành khách -->
-            <div style="flex: 1; min-width: 200px; position: relative;">
-                <label>HÀNH KHÁCH</label>
-                <div class="guest-summary" onclick="document.getElementById('guest-box').style.display = (document.getElementById('guest-box').style.display === 'block' ? 'none' : 'block')">
-                    <span id="guest-summary-text">2 khách</span>
-                </div>
-                <div class="guest-box" id="guest-box">
-                    <div class="guest-row">
-                        <span>Người lớn</span>
-                        <div class="guest-counter">
-                            <button type="button" onclick="updateGuest('adult', -1)">-</button>
-                            <span id="adult-count">2</span>
-                            <button type="button" onclick="updateGuest('adult', 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="guest-row">
-                        <span>Trẻ em</span>
-                        <div class="guest-counter">
-                            <button type="button" onclick="updateGuest('child', -1)">-</button>
-                            <span id="child-count">0</span>
-                            <button type="button" onclick="updateGuest('child', 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="guest-row">
-                        <span>Em bé</span>
-                        <div class="guest-counter">
-                            <button type="button" onclick="updateGuest('baby', -1)">-</button>
-                            <span id="baby-count">0</span>
-                            <button type="button" onclick="updateGuest('baby', 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-                <input type="hidden" name="adult" id="adult-input" value="2">
-                <input type="hidden" name="child" id="child-input" value="0">
-                <input type="hidden" name="baby" id="baby-input" value="0">
-            </div>
-
-            <!-- Nút tìm -->
-            <div class="search-button" style="flex: 0 0 auto;">
-                <button type="submit">Tìm ngay</button>
-            </div>
-        </div>
-
-    </form>
+?>
+<div class ="container">
+<section class="tour-top-header">
+	<h1 class="tour-title"><?php the_title(); ?></h1>
+	<?php
+	  $rating = get_field('danh_gia'); // Ví dụ: 9.2
+	  $review_count = get_field('so_luot_danh_gia'); // Ví dụ: 3
+	  if ($rating && $review_count):
+		$label = 'Rất tốt';
+		if ($rating >= 9) $label = 'Tuyệt vời';
+		elseif ($rating >= 8) $label = 'Rất tốt';
+		elseif ($rating >= 7) $label = 'Tốt';
+		elseif ($rating >= 5) $label = 'Trung bình';
+		else $label = 'Kém';
+	?>
+	  <div class="tour-rating-box">
+		<div class="score-box"><?php echo number_format($rating, 1); ?></div>
+		<span class="score-label"><?php echo $label; ?></span>
+		<span class="review-count">– <?php echo $review_count; ?> đánh giá</span>
+	  </div>
+	<?php endif; ?>
+  <div class="tour-top-grid">
+    <!-- Ảnh đại diện -->
+    <div class="tour-featured-img">
+      <?php if (has_post_thumbnail()): ?>
+        <?php the_post_thumbnail('large'); ?>
+      <?php endif; ?>
     </div>
-	 <script>
-		document.addEventListener('DOMContentLoaded', function () {
-			const form = document.querySelector('.hotel-search-form');
-			form.addEventListener('submit', function (e) {
-				e.preventDefault();
-				const select = form.querySelector('[name="location"]');
-				const slug = select.options[select.selectedIndex].getAttribute('data-full-slug');
 
-				if (slug) {
-					window.location.href = '/travelweb/vung_mien_hotel/' + slug + '/';
-				} 
-			});
-		});
-		</script>
+    <!-- Thông tin tour -->
+    <div class="tour-info-box">
+      <p class="tour-duration"><span class="icon">⏰</span> <?php the_field('thoi_gian'); ?></p>
+      <p class="tour-location">
+        <span class="icon">📍</span> <strong>Khởi hành từ:</strong> <?php the_field('khoihanh'); ?>
+      </p>
+      <p class="tour-route">
+        <span class="icon">🗺️</span> <strong>Lộ trình:</strong> <?php the_field('lo_trinh'); ?>
+      </p>
+      <?php if ($gia_km = get_field('gia_tour')): ?>
+        <p class="tour-price">
+          Giá từ: <del><?php echo number_format(get_field('gia_goc'), 0, ',', '.'); ?>đ</del>
+          <span><?php echo number_format($gia_km, 0, ',', '.'); ?>đ</span>
+        </p>
+      <?php endif; ?>
 
-    <?php
-    return ob_get_clean();
-}
-add_shortcode('hotel_filter_form', 'hotel_filter_form_shortcode');
+      <!-- Ảnh đảm bảo 100% -->
+      <div class="tour-guarantee">
+        <img src="http://localhost/travelweb/wp-content/uploads/2025/04/icon-core-value-quality.png" alt="Đảm bảo 100%">
+      </div>
+
+      <!-- Button và xem lịch -->
+      <a href="#banggia" class="tour-schedule-btn">Xem lịch khởi hành</a>
+      <a href="#thanh-toan" class="tour-request-btn">Thanh toán</a>
+    </div>
+  </div>
+</section>
+</div>
+<div class ="container">
+  <nav class="tour-tabs">
+    <ul>
+      <span class="tab" data-target="gioithieu">Giới thiệu</span>
+      <span class="tab" data-target="lichtrinh">Lịch trình</span>
+      <span class="tab" data-target="banggia">Bảng giá</span>
+      <span class="tab" data-target="danhgia">Đánh giá</span>
+      <span class="tab" data-target="hoidap">Hỏi đáp</span>
+    </ul>
+  </nav>
+</div>
+<div class ="container">
+  <section class="tour-description" id="gioithieu">
+    <div class="entry-content">
+      <?php the_content(); ?>
+    </div>
+    <?php if ($diem_noi_bat = get_field('diem_noi_bat')): ?>
+	  <h2 id="gioithieu">📌 Điểm nổi bật</h2>
+	  <ul class="highlight-list">
+		<?php
+		  $lines = explode(PHP_EOL, trim($diem_noi_bat));
+		  foreach ($lines as $line) {
+			  echo '<li>✅ ' . esc_html(trim($line)) . '</li>';
+		  }
+		?>
+	  </ul>
+	<?php endif; ?>
+  </section>
+</div>
+<div class ="container">
+  <section id="lichtrinh">
+	  <h2>📍 Lịch trình tour</h2>
+	  <div class="itinerary">
+		<?php
+		  $lich_trinh_text = get_field('lich_trinh');
+		  $lich_trinh_arr = explode(PHP_EOL, trim($lich_trinh_text));
+
+		  foreach ($lich_trinh_arr as $lt) {
+			  if (strpos($lt, '###') !== false) {
+				  list($tieu_de, $noi_dung) = explode('###', $lt, 2);
+				  echo '<div class="day">' . esc_html(trim($tieu_de)) . '</div>';
+				  echo '<div class="content">' . wp_kses_post(trim($noi_dung)) . '</div>';
+			  }
+		  }
+		?>
+	  </div>
+	</section>
+</div>
+<div class ="container">
+  <section id="banggia">
+    <h2>📌 Bảng giá (Khởi hành từ <?php echo esc_html($khoi_hanh); ?>)</h2>
+    <?php get_template_part('template-parts/price-table'); ?>
+  </section>
+</div>
+<div class ="container">
+ <section id="quytrinh">
+  <h2>📌 Quy định dịch vụ</h2>
+
+  <?php if ($bao_gom): ?>
+    <div class="service-item"><span>✔ Giá bao gồm</span><span class="arrow">▼</span></div>
+    <div class="service-content">
+      <ul class="service-list">
+        <?php
+          $lines = explode(PHP_EOL, trim($bao_gom));
+          foreach ($lines as $line) {
+              echo '<li>' . esc_html(trim($line)) . '</li>';
+          }
+        ?>
+      </ul>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($khong_bao_gom): ?>
+    <div class="service-item"><span>🚫 Giá không bao gồm</span><span class="arrow">▼</span></div>
+    <div class="service-content">
+      <ul class="service-list">
+        <?php
+          $lines = explode(PHP_EOL, trim($khong_bao_gom));
+          foreach ($lines as $line) {
+              echo '<li>' . esc_html(trim($line)) . '</li>';
+          }
+        ?>
+      </ul>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($chinh_sach): ?>
+    <div class="service-item"><span>❌ Quy định huỷ/đổi đặt tour</span><span class="arrow">▼</span></div>
+    <div class="service-content">
+      <ul class="service-list">
+        <?php
+          $lines = explode(PHP_EOL, trim($chinh_sach));
+          foreach ($lines as $line) {
+              echo '<li>' . esc_html(trim($line)) . '</li>';
+          }
+        ?>
+      </ul>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($luu_y): ?>
+    <div class="service-item"><span style="color:red;">⚠ Lưu ý *</span><span class="arrow">▼</span></div>
+    <div class="service-content">
+      <ul class="service-list">
+        <?php
+          $lines = explode(PHP_EOL, trim($luu_y));
+          foreach ($lines as $line) {
+              echo '<li>' . esc_html(trim($line)) . '</li>';
+          }
+        ?>
+      </ul>
+    </div>
+  <?php endif; ?>
+</section>
+</div>
+<div class ="container">
+<section id="danhgia">
+  <h2>📌 Đánh giá</h2>
+
+  <div class="review-summary">
+    <div class="review-score">9.1</div>
+    <div class="review-details">
+      <p><strong>Tuyệt vời</strong></p>
+      <p>2 đánh giá</p>
+    </div>
+  </div>
+
+  <div class="review-item">
+    <div class="review-score-small">9.2</div>
+    <div class="review-text">
+      <p class="author">Tuyệt vời - Thu Huyền</p>
+      <p>17/12/2024</p>
+      <p>
+        Gia đình mình vừa có một chuyến du lịch tuyệt vời. Mình chọn tour này vì lịch trình đi qua những địa điểm rất thú vị mà cả nhà đều yêu thích.
+        <span class="extra hidden">Đặc biệt, đồ ăn trong chuyến đi rất hợp khẩu vị của gia đình mình, ai cũng khen ngon. Khi đến Vạn Lý Trường Thành, bố mẹ mình thật sự vui mừng và hào hứng. Nếu có cơ hội chắc chắn mình sẽ đi lại tour này.</span>
+        <span class="toggle-text">Xem thêm »</span>
+      </p>
+      <div class="review-images">
+        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
+        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
+      </div>
+    </div>
+  </div>
+
+  <!-- Thêm các đánh giá khác tương tự -->
+</section>
+</div>
+
+<?php
+$current_id = get_the_ID();
+$dia_diem = get_field('diadiem');
+
+if ($dia_diem):
+  $args = [
+    'post_type' => 'tour',
+    'posts_per_page' => 4,
+    'post__not_in' => [$current_id],
+    'meta_query' => [
+      [
+        'key' => 'diadiem',
+        'value' => $dia_diem,
+        'compare' => '='
+      ]
+    ]
+  ];
+  $related_tours = new WP_Query($args);
+?>
+
+<?php if ($related_tours->have_posts()): ?>
+<div class ="container">
+  <section id="tour-tuong-tu">
+    <h2>📌 Tour tương tự</h2>
+    <div class="related-tours">
+      <?php while ($related_tours->have_posts()): $related_tours->the_post(); ?>
+        <div class="related-tour-item">
+          <a href="<?php the_permalink(); ?>">
+            <?php if (has_post_thumbnail()): ?>
+              <?php the_post_thumbnail('medium'); ?>
+            <?php endif; ?>
+            <h3><?php the_title(); ?></h3>
+            <?php if ($gia = get_field('gia')): ?>
+              <p class="related-price">Giá từ: <?php echo number_format($gia, 0, ',', '.'); ?>đ</p>
+            <?php endif; ?>
+          </a>
+        </div>
+      <?php endwhile; wp_reset_postdata(); ?>
+    </div>
+  </section>
+</div>
+<?php endif; ?>
+<?php endif; ?>
+<?php get_footer(); ?>
