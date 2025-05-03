@@ -1,99 +1,192 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Test Gọi Bot</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    .product {
-      border: 1px solid #ddd;
-      padding: 10px;
-      margin-bottom: 20px;
-      max-width: 300px;
-    }
-    .price {
-      font-weight: bold;
-      color: #d60000;
-    }
-    button {
-      padding: 8px 16px;
-      background-color: #0084ff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #005fcc;
-    }
+// hotel filter
+function hotel_filter_form_shortcode() {
+    ob_start();
+    ?>
 
-    /* Popup overlay toàn màn hình */
-    #overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.9);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
+    <style>
+    .hotel-search-wrapper {
+        max-width: 1140px;
+        margin-top: -100px;
+        position: relative;
+        z-index: 99;
     }
-    #overlay img {
-      max-width: 90vw;
-      max-height: 90vh;
-      border: 4px solid white;
-      border-radius: 10px;
+    .hotel-search-form {
+        background: #fff;
+        padding: 24px 32px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
     }
-    #overlay:target {
-      display: flex;
+    .hotel-search-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
     }
-    .close-btn {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      font-size: 30px;
-      color: white;
-      cursor: pointer;
+    .hotel-search-form label {
+        font-weight: 500;
+        font-size: 14px;
+        color: #888;
+        margin-bottom: 4px;
+        display: block;
     }
-  </style>
-</head>
-<body>
-
-  <div class="product">
-    <h3>Tên sản phẩm A</h3>
-    <p>Giá: <span class="price" data-price="120000">120.000đ</span></p>
-    <button onclick="runBotWithPrice(this)">Mua ngay</button>
-  </div>
-
-  <!-- Popup overlay -->
-  <div id="overlay">
-    <div class="close-btn" onclick="closeOverlay()">×</div>
-    <img id="qr-image" src="" alt="Ảnh từ bot" />
-  </div>
-
-  <script>
-    function runBotWithPrice(buttonElement) {
-      const price = buttonElement.closest('.product').querySelector('.price').dataset.price;
-
-      fetch("https://heather-radius-offensive-majority.trycloudflare.com/run-bot", {
-        method: "POST",
-        body: new URLSearchParams({ price })
-      })
-      .then(res => res.blob())
-      .then(blob => {
-        const url = URL.createObjectURL(blob);
-        document.getElementById("qr-image").src = url;
-        document.getElementById("overlay").style.display = "flex"; // 👈 Hiện overlay
-      })
-      .catch(err => alert("Lỗi gọi bot: " + err));
+    .hotel-search-form select,
+    .hotel-search-form input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
     }
-
-    function closeOverlay() {
-      document.getElementById("overlay").style.display = "none";
+    .guest-summary {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        cursor: pointer;
     }
-  </script>
+    .guest-box {
+        position: absolute;
+        background: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        padding: 15px;
+        border-radius: 10px;
+        display: none;
+        top: 100%;
+        width: 260px;
+        margin-top: 5px;
+        z-index: 100;
+    }
+    .guest-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .guest-counter button {
+        background: #eee;
+        border: none;
+        padding: 4px 10px;
+        border-radius: 50%;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .guest-counter span {
+        margin: 0 10px;
+        font-weight: bold;
+    }
+    .search-button button {
+        padding: 12px 24px;
+        background-color: #e1703a;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    </style>
 
-</body>
-</html>
+    <div class="hotel-search-wrapper">
+    <form action="/tim-kiem-khach-san" method="get" class="hotel-search-form">
+
+        <!-- Địa điểm -->
+        <div>
+            <label>ĐỊA ĐIỂM</label>
+            <select name="location">
+                <option value="">Chọn tỉnh/thành</option>
+                <?php
+                $terms = get_terms([
+                    'taxonomy' => 'vung_mien_hotel',
+                    'hide_empty' => false,
+                ]);
+                foreach ($terms as $term) {
+                    $parent = get_term($term->parent, 'vung_mien_hotel');
+                    $grandparent = $parent ? get_term($parent->parent, 'vung_mien_hotel') : null;
+                    if ($grandparent) {
+                        echo '<option value="' . esc_attr($term->slug) . '">' . esc_html($term->name) . '</option>';
+                    }
+                }
+                ?>
+            </select>
+        </div>
+
+        <!-- Hàng dưới: ngày + khách + nút -->
+        <div class="hotel-search-row">
+            <!-- Nhận phòng -->
+            <div style="flex: 1; min-width: 200px;">
+                <label>NHẬN PHÒNG</label>
+                <input type="date" name="checkin">
+            </div>
+
+            <!-- Trả phòng -->
+            <div style="flex: 1; min-width: 200px;">
+                <label>TRẢ PHÒNG</label>
+                <input type="date" name="checkout">
+            </div>
+
+            <!-- Hành khách -->
+            <div style="flex: 1; min-width: 200px; position: relative;">
+                <label>HÀNH KHÁCH</label>
+                <div class="guest-summary" onclick="document.getElementById('guest-box').style.display = (document.getElementById('guest-box').style.display === 'block' ? 'none' : 'block')">
+                    <span id="guest-summary-text">2 khách</span>
+                </div>
+                <div class="guest-box" id="guest-box">
+                    <div class="guest-row">
+                        <span>Người lớn</span>
+                        <div class="guest-counter">
+                            <button type="button" onclick="updateGuest('adult', -1)">-</button>
+                            <span id="adult-count">2</span>
+                            <button type="button" onclick="updateGuest('adult', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="guest-row">
+                        <span>Trẻ em</span>
+                        <div class="guest-counter">
+                            <button type="button" onclick="updateGuest('child', -1)">-</button>
+                            <span id="child-count">0</span>
+                            <button type="button" onclick="updateGuest('child', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="guest-row">
+                        <span>Em bé</span>
+                        <div class="guest-counter">
+                            <button type="button" onclick="updateGuest('baby', -1)">-</button>
+                            <span id="baby-count">0</span>
+                            <button type="button" onclick="updateGuest('baby', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="adult" id="adult-input" value="2">
+                <input type="hidden" name="child" id="child-input" value="0">
+                <input type="hidden" name="baby" id="baby-input" value="0">
+            </div>
+
+            <!-- Nút tìm -->
+            <div class="search-button" style="flex: 0 0 auto;">
+                <button type="submit">Tìm ngay</button>
+            </div>
+        </div>
+
+    </form>
+    </div>
+
+    <script>
+    function updateGuest(type, delta) {
+        const countId = type + '-count';
+        const inputId = type + '-input';
+        const el = document.getElementById(countId);
+        let val = parseInt(el.textContent) + delta;
+        if (val < 0) val = 0;
+        el.textContent = val;
+        document.getElementById(inputId).value = val;
+
+        const total = parseInt(document.getElementById('adult-count').textContent) +
+                      parseInt(document.getElementById('child-count').textContent);
+        document.getElementById('guest-summary-text').textContent = total + ' khách';
+    }
+    </script>
+
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('hotel_filter_form', 'hotel_filter_form_shortcode');
