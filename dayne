@@ -1,112 +1,76 @@
-// form search combo
-function combo_search_form_shortcode() {
-    ob_start(); ?>
-    
-    <style>
-    .tour-search-wrapper {
-        max-width: 1140px;
-        margin-top: -60px;
-        position: relative;
-        z-index: 99;
-    }
-    .tour-search-form {
-        background: #fff;
-        padding: 24px 32px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        display: flex;
-        gap: 16px;
-        align-items: flex-end;
-        flex-wrap: wrap;
-    }
-    .tour-search-form label {
-        font-weight: 500;
-        font-size: 14px;
-        color: #888;
-        display: block;
-        margin-bottom: 6px;
-    }
-    .tour-search-form select {
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-    }
-    .tour-search-form button {
-        padding: 12px 24px;
-        background-color: #e1703a;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    </style>
+/// short code combo grid
 
-    <div class="tour-search-wrapper">
-    <form onsubmit="return redirectToVungMien(event);" class="combo-search-form">
-		<!-- Địa điểm -->
-        <div>
-            <label>ĐỊA ĐIỂM</label>
-            <select name="location" id="location-select">
-                <option value="">Chọn tỉnh/thành</option>
-                <?php
-                $terms = get_terms([
-                    'taxonomy' => 'vung_mien_combo',
-                    'hide_empty' => false,
-                ]);
-                foreach ($terms as $term) {
-                    $parent = get_term($term->parent, 'vung_mien_combo');
-                    $grandparent = $parent ? get_term($parent->parent, 'vung_mien_combo') : null;
-                    if ($grandparent) {
-                        echo '<option value="' . esc_attr($term->slug) . '">' . esc_html($term->name) . '</option>';
-                    }
-                }
-                ?>
-            </select>
-        </div>
+function render_combo_grid() {
+    $args = array(
+        'post_type' => 'combo', // 👉 Đổi thành post type bạn muố
+        'posts_per_page' => 6,
+    );
 
-        <!-- Hàng dưới: ngày + khách + nút -->
-        <div class="combo-search-row">
-            <!-- Nhận phòng -->
-            <div style="flex: 1; min-width: 200px;">
-                <label>NHẬN PHÒNG</label>
-                <input type="date" name="checkin">
-            </div>
-			<div style="flex: 1;">
-            <label>KHỞI HÀNH TỪ</label>
-            <select name="khoihanh">
-                <option value="">--Chọn--</option>
-                <option value="ha-noi">Hà Nội</option>
-                <option value="ho-chi-minh">Hồ Chí Minh</option>
-                <option value="da-nang">Đà Nẵng</option>
-                <option value="hai-phong">Hải Phòng</option>
-            </select>
-        	</div>
-		</div>
-        <!-- Nút -->
-        <div style="flex: 0 0 auto;">
-            <button type="submit">Tìm ngay</button>
-        </div>
-    </form>
-    </div>
+    $query = new WP_Query($args);
+    $output = '<div class="tour-grid" style="display: flex; flex-wrap: wrap; gap: 20px;">';
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-		const form = document.querySelector('.combo-search-form');
-		form.addEventListener('submit', function (e) {
-			e.preventDefault();
-			const select = form.querySelector('[name="diadiem"]');
-			const slug = select.value;
+    while ($query->have_posts()) : $query->the_post();
+        $id = get_the_ID();
+        $title = get_the_title();
+        $permalink = get_permalink();
+        $thumbnail = get_the_post_thumbnail_url($id, 'medium');
+        
+        // Lấy các ACF field – bạn tự thay field tương ứng nhé
+        $badge = get_field('noi_bat', $id);
+        $rating = get_field('danh_gia', $id)+0;
+        $rating_text = get_field('rating_text', $id);
+        $rating_count = get_field('so_luot_danh_gia', $id)+0;
+        $places = get_field('lo_trinh', $id);
+        $duration = get_field('thoi_gian', $id);
+        $old_price = get_field('gia_goc', $id)+0;
+        $new_price = get_field('gia_tour', $id)+0;
+		$promotion = get_field('promotion', $id);
+		$promotion_html = '';
 
-			if (slug) {
-				window.location.href = '/travelweb/vung_mien_combo/' + slug + '/';
+		if (is_array($promotion)) {
+			foreach ($promotion as $item) {
+				$promotion_html .= '<div style="margin-bottom: 4px;">🎁 ' . esc_html($item) . '</div>';
 			}
-		});
-	});
-    </script>
+		} elseif (!empty($promotion)) {
+			$promotion_html = '<div>🎁 ' . esc_html($promotion) . '</div>';
+		}
 
-    <?php
-    return ob_get_clean();
+        $output .= '
+        <div class="tour-card" style="width: 32%; border: 1px solid #eee; border-radius: 10px; overflow: hidden; background: #fff;">
+            <a href="' . $permalink . '" style="text-decoration: none; color: inherit;">
+                <div style="position: relative;">
+                    <img src="' . $thumbnail . '" alt="' . esc_attr($title) . '" style="width: 100%; height: 180px; object-fit: cover;">
+                    ' . ($badge ? '<div style="position: absolute; top: 10px; left: 10px; background: red; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px;">' . esc_html($badge) . '</div>' : '') . '
+                </div>
+                <div style="padding: 12px;">
+                    <h3 style="font-size: 16px; margin: 0 0 6px;">' . esc_html($title) . '</h3>
+                    
+                    <div style="margin-bottom: 8px;">
+                        <span style="background:#007bff; color:white; padding:2px 6px; border-radius:4px;">' . esc_html($rating) . '</span>
+                        <strong>' . esc_html($rating_text) . '</strong> – ' . esc_html($rating_count) . ' đánh giá
+                    </div>
+
+                    <div style="font-size: 14px; color: #555; margin-bottom: 8px;">
+                        📍 ' . esc_html($places) . '
+                    </div>
+
+                    <div style="font-size:14px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="padding:4px 6px; background:#eee; border-radius:4px;">' . esc_html($duration) . '</span>
+                        <span>
+                            <del style="color:gray;">' . number_format($old_price, 0, ',', '.') . 'đ</del><br>
+                            <strong style="color:red;">' . number_format($new_price, 0, ',', '.') . 'đ</strong>
+                        </span>
+                    </div>
+
+                    ' . ($promotion_html ? '<div style="margin-top:10px; background: #fce9d2; color:#e1703a; padding: 5px 10px; border-radius: 6px; font-size: 13px;">' . $promotion_html . '</div>' : '') . '
+                </div>
+            </a>
+        </div>';
+    endwhile;
+
+    $output .= '</div>';
+    wp_reset_postdata();
+
+    return $output;
 }
-add_shortcode('combo_search_form', 'combo_search_form_shortcode');
+add_shortcode('combo_grid', 'render_combo_grid');
