@@ -1,90 +1,69 @@
- <div class="top-banner">
-  <div class="banner-left">
-    <img src="http://localhost/travelweb/wp-content/uploads/2025/04/15-nam.png" alt="15 năm" class="icon-15nam">
-    <div class="banner-text">
-      <strong>15 năm chặng đường</strong><br>
-      CHINH PHỤC MỘT NIỀM TIN
+//form thanh toán
+function form_thanh_toan_shortcode() {
+    ob_start();
+    $gia_tour = isset($_GET['price']) ? intval($_GET['price']) : 0;
+    ?>
+    
+    </select>
+  </label>
+
+  <label>Quý danh:
+    <select name="quy_danh">
+      <option value="Ông">Ông</option>
+      <option value="Bà">Bà</option>
+    </select>
+  </label>
+        <h2 style="margin-top:0">Xác nhận thanh toán</h2>
+        <p>Giá tour: <strong><?= number_format($gia_tour, 0, ',', '.') ?> đ</strong></p>
+        <label>Họ tên: (*)<input type="text" id="user-name" placeholder="Họ tên của bạn" style="width:100%;margin-bottom:10px;padding:10px"></label>
+        <label>Email: (*)<input type="email" id="user-email" placeholder="Email" style="width:100%;margin-bottom:10px;padding:10px"></label>
+		<label>Số điện thoại:<input type="sdt" id="sdt" placeholder="SĐT" style="width:100%;margin-bottom:10px;padding:10px"></label>
+        
+        <div id="qr-popup" style="margin-top:20px;"></div>
+    <label>Yêu cầu đặc biệt:
+    <textarea name="yeu_cau_dac_biet" rows="3"></textarea>
+  </label>
+
+  <button onclick="submitPayment()" style="padding:10px 24px;background:#e1703a;color:#fff;border:none;border-radius:6px;">Xác nhận thanh toán</button>
+</form>
     </div>
-  </div>
 
-  <div class="vertical-divider"></div>
+    <script>
+function submitPayment() {
+  const name = document.getElementById('user-name').value.trim();
+  const email = document.getElementById('user-email').value.trim();
+  const amount = <?= $gia_tour ?>; // hoặc lấy từ URL nếu muốn động
 
-  <div class="banner-icons">
-    <div class="icon-box">
-      <img src="http://localhost/travelweb/wp-content/uploads/2025/04/luon-co-gia-tot-41.png" alt="Giá tốt">
-      <div class="icon-caption">Luôn có giá tốt</div>
-    </div>
-    <div class="icon-box">
-      <img src="http://localhost/travelweb/wp-content/uploads/2025/04/dam-bao-chat-luong-41.png" alt="Chất lượng">
-      <div class="icon-caption">Đảm bảo chất lượng</div>
-    </div>
-    <div class="icon-box">
-      <img src="http://localhost/travelweb/wp-content/uploads/2025/04/am-hieu-tuyen-diem-41.png" alt="Tuyến điểm">
-      <div class="icon-caption">Am hiểu, tận tình chu đáo</div>
-    </div>
-  </div>
-</div>
+  if (!name || !email || amount === 0) {
+    alert('Vui lòng nhập đủ thông tin hợp lệ.');
+    return;
+  }
 
+  const formData = new URLSearchParams();
+  formData.append('price', amount);  // Đổi sang `price` để khớp với API
 
-.top-banner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  padding: 20px 10px;
-  flex-wrap: wrap;
+  fetch("https://mill-moses-cpu-allowance.trycloudflare.com/run-bot", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: formData.toString()
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Không lấy được ảnh QR");
+    return res.blob();
+  })
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    document.getElementById("qr-popup").innerHTML = `<img src="${url}" style="max-width:300px;">`;
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Lỗi khi gọi bot.");
+  });
 }
-
-.banner-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-right: 30px;
+</script>
+    <?php
+    return ob_get_clean();
 }
-
-.icon-15nam {
-  width: 80px;
-  height: 40px;
-}
-
-.banner-text {
-  font-size: 14px;
-  color: #F7931E;
-  line-height: 1.3;
-  font-weight: 600;
-  text-align: left;
-}
-
-.vertical-divider {
-  width: 1px;
-  height: 50px;
-  background-color: #ccc;
-  margin: 0 20px;
-}
-
-.banner-icons {
-  display: flex;
-  gap: 30px;
-  flex-wrap: wrap;
-}
-
-.icon-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  width: 110px;
-}
-
-.icon-box img {
-  width: 36px;
-  height: auto;
-  margin-bottom: 6px;
-}
-
-.icon-caption {
-  font-size: 14px;
-  color: #333;
-  line-height: 1.4;
-}
-
+add_shortcode('form_thanh_toan', 'form_thanh_toan_shortcode');
