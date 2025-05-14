@@ -1,1 +1,17 @@
-https://sat-phillips-blue-lang.trycloudflare.com
+<section id="lichtrinh">
+	  <h2>📍 Lịch trình tour</h2>
+	  <div class="itinerary">
+		<?php
+		  $lich_trinh_text = get_field('lich_trinh');
+		  $lich_trinh_arr = explode(PHP_EOL, trim($lich_trinh_text));
+
+		  foreach ($lich_trinh_arr as $lt) {
+			  if (strpos($lt, '###') !== false) {
+				  list($tieu_de, $noi_dung) = explode('###', $lt, 2);
+				  echo '<div class="day">' . esc_html(trim($tieu_de)) . '</div>';
+				  echo '<div class="content">' . wp_kses_post(trim($noi_dung)) . '</div>';
+			  }
+		  }
+		?>
+	  </div>
+	</section>
