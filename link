@@ -1,9 +1,12 @@
-<?php if ($luu_y): ?>
-    <div class="service-item"><span style="color:red;">⚠ Lưu ý *</span><span class="arrow">▼</span></div>
+<section id="quytrinh">
+  <h2>📌 Quy định dịch vụ</h2>
+
+  <?php if ($bao_gom): ?>
+    <div class="service-item"><span>✔ Giá bao gồm</span><span class="arrow">▼</span></div>
     <div class="service-content">
       <ul class="service-list">
         <?php
-          $lines = explode(PHP_EOL, trim($luu_y));
+          $lines = explode(PHP_EOL, trim($bao_gom));
           foreach ($lines as $line) {
               echo '<li>' . esc_html(trim($line)) . '</li>';
           }
@@ -11,3 +14,51 @@
       </ul>
     </div>
   <?php endif; ?>
+
+  <?php if ($khong_bao_gom): ?>
+    <div class="service-item"><span>🚫 Giá không bao gồm</span><span class="arrow">▼</span></div>
+    <div class="service-content">
+      <ul class="service-list">
+        <?php
+          $lines = explode(PHP_EOL, trim($khong_bao_gom));
+          foreach ($lines as $line) {
+              echo '<li>' . esc_html(trim($line)) . '</li>';
+          }
+        ?>
+      </ul>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($chinh_sach): ?>
+    <div class="service-item"><span>❌ Quy định huỷ/đổi đặt tour</span><span class="arrow">▼</span></div>
+    <div class="service-content">
+      <ul class="service-list">
+        <?php
+          $lines = explode(PHP_EOL, trim($chinh_sach));
+          foreach ($lines as $line) {
+              echo '<li>' . esc_html(trim($line)) . '</li>';
+          }
+        ?>
+      </ul>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($luu_y): ?>
+    <div class="service-item"><span style="color:red;">⚠ Lưu ý *</span><span class="arrow">▼</span></div>
+    <div class="service-content">
+        <?php
+        $lines = explode(PHP_EOL, trim($luu_y));
+        if (!empty($lines)) {
+            echo '<strong>' . esc_html(trim(array_shift($lines))) . '</strong>'; // Dòng đầu in đậm, không <li>
+        }
+        ?>
+        <ul class="service-list">
+        <?php
+            foreach ($lines as $line) {
+                echo '<li>' . esc_html(trim($line)) . '</li>';
+            }
+        ?>
+        </ul>
+    </div>
+    <?php endif; ?>
+</section>
