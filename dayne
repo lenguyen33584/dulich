@@ -1,189 +1,179 @@
-function hotel_filter_form_shortcode() {
-    ob_start();
-    ?>
+<?php
+/**
+ * Template for taxonomy vung_mien with dynamic filters (checkbox style)
+ */
 
-    <style>
-    .hotel-search-wrapper {
-        max-width: 1140px;
-        margin-top: -100px;
-        position: relative;
-        z-index: 99;
-    }
-    .hotel-search-form {
-        background: #fff;
-        padding: 24px 32px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-    .hotel-search-row {
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-    }
-    .hotel-search-form label {
-        font-weight: 500;
-        font-size: 14px;
-        color: #888;
-        margin-bottom: 4px;
-        display: block;
-    }
-    .hotel-search-form select,
-    .hotel-search-form input {
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-    }
-    .guest-summary {
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        cursor: pointer;
-    }
-    .guest-box {
-        position: absolute;
-        background: white;
-        border: 1px solid #ddd;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-        padding: 15px;
-        border-radius: 10px;
-        display: none;
-        top: 100%;
-        width: 260px;
-        margin-top: 5px;
-        z-index: 100;
-    }
-    .guest-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .guest-counter button {
-        background: #eee;
-        border: none;
-        padding: 4px 10px;
-        border-radius: 50%;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    .guest-counter span {
-        margin: 0 10px;
-        font-weight: bold;
-    }
-    .search-button button {
-        padding: 12px 24px;
-        background-color: #e1703a;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    </style>
+get_header();
 
-    <div class="hotel-search-wrapper">
-    <form action="" method="get" class="hotel-search-form" onsubmit="return redirectToLocation(event);">
+$term = get_queried_object();
 
-        <!-- Địa điểm -->
-        <div>
-            <label>ĐỊA ĐIỂM</label>
-            <select name="location" id="location-select">
-                <option value="">Chọn tỉnh/thành</option>
-                <?php
-                $terms = get_terms([
-                    'taxonomy' => 'vung_mien_hotel',
-                    'hide_empty' => false,
-                ]);
-                foreach ($terms as $term) {
-                    $parent = get_term($term->parent, 'vung_mien_hotel');
-                    $grandparent = $parent ? get_term($parent->parent, 'vung_mien_hotel') : null;
-                    if ($grandparent) {
-                        echo '<option value="' . esc_attr($term->slug) . '">' . esc_html($term->name) . '</option>';
-                    }
-                }
-                ?>
-            </select>
-        </div>
+$type = $_GET['type'] ?? 'tour';
 
-        <!-- Hàng dưới: ngày + khách + nút -->
-        <div class="hotel-search-row">
-            <!-- Nhận phòng -->
-            <div style="flex: 1; min-width: 200px;">
-                <label>NHẬN PHÒNG</label>
-                <input type="date" name="checkin">
-            </div>
+$paged = get_query_var('paged') ? get_query_var('paged') : 1;
 
-            <!-- Trả phòng -->
-            <div style="flex: 1; min-width: 200px;">
-                <label>TRẢ PHÒNG</label>
-                <input type="date" name="checkout">
-            </div>
+$filters = [
+  'khoihanh' => isset($_GET['khoihanh']) ? (array) $_GET['khoihanh'] : [],
+  'thoi_gian' => isset($_GET['thoi_gian']) ? (array) $_GET['thoi_gian'] : [],
+  'gia_khoang' => isset($_GET['gia_khoang']) ? (array) $_GET['gia_khoang'] : [],
+  'diemden' => isset($_GET['diemden']) ? (array) $_GET['diemden'] : []
+];
 
-            <!-- Hành khách -->
-            <div style="flex: 1; min-width: 200px; position: relative;">
-                <label>HÀNH KHÁCH</label>
-                <div class="guest-summary" onclick="document.getElementById('guest-box').style.display = (document.getElementById('guest-box').style.display === 'block' ? 'none' : 'block')">
-                    <span id="guest-summary-text">2 khách</span>
-                </div>
-                <div class="guest-box" id="guest-box">
-                    <div class="guest-row">
-                        <span>Người lớn</span>
-                        <div class="guest-counter">
-                            <button type="button" onclick="updateGuest('adult', -1)">-</button>
-                            <span id="adult-count">2</span>
-                            <button type="button" onclick="updateGuest('adult', 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="guest-row">
-                        <span>Trẻ em</span>
-                        <div class="guest-counter">
-                            <button type="button" onclick="updateGuest('child', -1)">-</button>
-                            <span id="child-count">0</span>
-                            <button type="button" onclick="updateGuest('child', 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="guest-row">
-                        <span>Em bé</span>
-                        <div class="guest-counter">
-                            <button type="button" onclick="updateGuest('baby', -1)">-</button>
-                            <span id="baby-count">0</span>
-                            <button type="button" onclick="updateGuest('baby', 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-                <input type="hidden" name="adult" id="adult-input" value="2">
-                <input type="hidden" name="child" id="child-input" value="0">
-                <input type="hidden" name="baby" id="baby-input" value="0">
-            </div>
+$args = [
+  'post_type' => $type,
+  'posts_per_page' => 10,
+  'paged' => $paged,
+  'tax_query' => [[
+    'taxonomy' => 'vung_mien_tour',
+    'field'    => 'slug',
+    'terms'    => $term->slug,
+    'include_children' => true
+  ]],
+  'meta_query' => ['relation' => 'AND']
+];
 
-            <!-- Nút tìm -->
-            <div class="search-button" style="flex: 0 0 auto;">
-                <button type="submit">Tìm ngay</button>
-            </div>
-        </div>
-
-    </form>
-    </div>
-	 <script>
-		document.addEventListener('DOMContentLoaded', function () {
-			const form = document.querySelector('.hotel-search-form');
-			form.addEventListener('submit', function (e) {
-				e.preventDefault();
-				const select = form.querySelector('[name="location"]');
-				const slug = select.value;
-
-				if (slug) {
-					window.location.href = '/vung_mien_hotel/' + slug + '/';
-				} 
-			});
-		});
-		</script>
-
-    <?php
-    return ob_get_clean();
+foreach ($filters['khoihanh'] as $val) {
+  $args['meta_query'][] = [
+    'key' => 'khoihanh',
+    'value' => sanitize_text_field($val),
+    'compare' => 'LIKE'
+  ];
 }
-add_shortcode('hotel_filter_form', 'hotel_filter_form_shortcode');
+foreach ($filters['thoi_gian'] as $val) {
+  $args['meta_query'][] = [
+    'key' => 'thoi_gian',
+    'value' => sanitize_text_field($val),
+    'compare' => 'LIKE'
+  ];
+}
+foreach ($filters['gia_khoang'] as $val) {
+  [$min, $max] = explode('-', $val);
+  $args['meta_query'][] = [
+    'key' => ($type === 'tour' ? 'gia_tour' : 'gia'),
+    'value' => [(int)$min, (int)$max],
+    'type' => 'NUMERIC',
+    'compare' => 'BETWEEN'
+  ];
+}
+foreach ($filters['diemden'] as $val) {
+  $args['meta_query'][] = [
+    'key' => 'diem_den',
+    'value' => sanitize_text_field($val),
+    'compare' => 'LIKE'
+  ];
+}
+
+$query = new WP_Query($args);
+
+$all_posts = get_posts([
+  'post_type' => $type,
+  'numberposts' => -1,
+  'fields' => 'ids',
+  'tax_query' => [[
+    'taxonomy' => 'vung_mien_tour',
+    'field' => 'slug',
+    'terms' => $term->slug,
+    'include_children' => true
+  ]]
+]);
+
+$khoihanh_list = $thoi_gian_list = $gia_ranges = $diem_den_list = [];
+foreach ($all_posts as $pid) {
+  $kh = get_post_meta($pid, 'khoihanh', true);
+  $tg = get_post_meta($pid, 'thoi_gian', true);
+  $gia = get_post_meta($pid, ($type === 'tour' ? 'gia_tour' : 'gia'), true);
+  $dd = get_post_meta($pid, 'diem_den', true);
+  if ($kh) $khoihanh_list[] = $kh;
+  if ($tg) $thoi_gian_list[] = $tg;
+  if ($gia) {
+    $gia = (int)$gia;
+    if ($gia <= 5000000) $gia_ranges[] = '1000000-5000000';
+    elseif ($gia <= 10000000) $gia_ranges[] = '5000000-10000000';
+    elseif ($gia <= 20000000) $gia_ranges[] = '10000000-20000000';
+    elseif ($gia <= 30000000) $gia_ranges[] = '20000000-30000000';
+    else $gia_ranges[] = '30000000-900000000';
+  }
+  if ($dd) $diem_den_list[] = $dd;
+}
+
+$khoihanh_list = array_unique($khoihanh_list);
+$thoi_gian_list = array_unique($thoi_gian_list);
+$gia_ranges = array_unique($gia_ranges);
+$diem_den_list = array_unique($diem_den_list);
+?>
+<div class = "custom-container" style="max-width:1140px;margin:auto;display:flex;">
+<?php if (function_exists('custom_breadcrumb')) {
+    custom_breadcrumb();
+}?></div>
+<div style="max-width:1140px;margin:auto;display:flex;gap:24px;margin-top:12px">
+
+<aside style="width:250px;background:#f9f9f9;padding:16px;border-radius:8px;border:1px solid #eee">
+<h3 style="margin-top:0">Bộ lọc</h3>
+<form id="filter-form" method="get">
+<input type="hidden" name="type" value="<?= esc_attr($type) ?>">
+<?php if ($khoihanh_list): ?>
+<p><strong>Khởi hành:</strong></p>
+<?php foreach ($khoihanh_list as $val): ?>
+<label><input type="checkbox" name="khoihanh[]" value="<?= esc_attr($val) ?>" <?= in_array($val, $filters['khoihanh']) ? 'checked' : '' ?>> <?= esc_html($val) ?></label><br>
+<?php endforeach; endif; ?>
+<?php if ($thoi_gian_list): ?>
+<p><strong>Thời gian:</strong></p>
+<?php foreach ($thoi_gian_list as $val): ?>
+<label><input type="checkbox" name="thoi_gian[]" value="<?= esc_attr($val) ?>" <?= in_array($val, $filters['thoi_gian']) ? 'checked' : '' ?>> <?= esc_html($val) ?></label><br>
+<?php endforeach; endif; ?>
+<p><strong>Mức giá trong khoảng:</strong></p>
+<?php
+$gia_labels = [
+  '1000000-5000000' => 'Từ 1 triệu đến 5 triệu',
+  '5000000-10000000' => 'Từ 5 triệu đến 10 triệu',
+  '10000000-20000000' => 'Từ 10 triệu đến 20 triệu',
+  '20000000-30000000' => 'Từ 20 triệu đến 30 triệu',
+  '30000000-900000000' => 'Trên 30 triệu'
+];
+foreach ($gia_labels as $val => $label):
+  if (in_array($val, $gia_ranges)):
+?>
+<label><input type="checkbox" name="gia_khoang[]" value="<?= $val ?>" <?= in_array($val, $filters['gia_khoang']) ? 'checked' : '' ?>> <?= $label ?></label><br>
+<?php endif; endforeach; ?>
+<?php if ($diem_den_list): ?>
+<p><strong>Điểm đến:</strong></p>
+<?php foreach ($diem_den_list as $val): ?>
+<label><input type="checkbox" name="diemden[]" value="<?= esc_attr($val) ?>" <?= in_array($val, $filters['diemden']) ? 'checked' : '' ?>> <?= esc_html($val) ?></label><br>
+<?php endforeach; endif; ?>
+</form>
+</aside>
+
+<main style="flex:1">
+<h2>Kết quả <?= ($type === 'tour' ? 'tour' : 'khách sạn') ?> ở <?= esc_html($term->name) ?></h2>
+<?php if ($query->have_posts()): ?>
+<div style="display:flex;flex-direction:column;gap:24px">
+<?php while ($query->have_posts()): $query->the_post(); ?>
+<div style="border:1px solid #eee;padding:16px;border-radius:8px;display:flex;gap:16px">
+<div style="flex:0 0 200px">
+<?php the_post_thumbnail('medium', ['style'=>'border-radius:8px']) ?>
+</div>
+<div style="flex:1">
+<h3 style="margin:0"><a href="<?php the_permalink(); ?>" style="color:#333;text-decoration:none"><?php the_title(); ?></a></h3>
+<p><strong>Khởi hành:</strong> <?php the_field('khoihanh'); ?> | <strong>Thời gian:</strong> <?php the_field('thoi_gian'); ?></p>
+<p><strong>Giá:</strong> <?= number_format(get_field($type === 'tour' ? 'gia_tour' : 'gia'), 0, ',', '.') ?> đ</p>
+<a href="<?php the_permalink(); ?>" style="color:#e1703a;font-weight:bold">Xem chi tiết &raquo;</a>
+</div></div>
+<?php endwhile; ?>
+</div>
+<div style="margin-top:24px">
+<?= paginate_links(['total' => $query->max_num_pages]) ?>
+</div>
+<?php else: ?><p>Không tìm thấy kết quả phù hợp.</p><?php endif; ?>
+<?php wp_reset_postdata(); ?>
+</main>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("filter-form");
+  if (!form) return;
+  const inputs = form.querySelectorAll("input[type=checkbox]");
+  inputs.forEach(input => {
+    input.addEventListener("change", () => form.submit());
+  });
+});
+</script>
+<?php get_footer(); ?>
