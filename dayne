@@ -1,37 +1,70 @@
-<div class ="container">
-  <section id="lichtrinh">
-    <h2>📍 Lịch trình tour</h2>
-    <div class="itinerary">
-        <?php
-        $lich_trinh_text = get_field('lich_trinh');
-        $lich_trinh_arr = explode(PHP_EOL, trim($lich_trinh_text));
+<div class = "container"> 
+<?php if (have_rows('bang_gia')): ?>
+<section id="bang-gia-tour">
+  <h2>📅 Bảng giá tour</h2>
 
-        $current_title = '';
-        $current_content = '';
+  <?php
+    // Lấy danh sách tháng
+    $months = [];
+    $rows = get_field('bang_gia'); // lấy trước rồi dùng foreach
+    foreach ($rows as $row) {
+      $ngay = $row['ngay_khoi_hanh'];
+      if ($ngay) {
+        $month_key = date('Y-m', strtotime($ngay));
+        $months[$month_key] = 'Tháng ' . (int)date('m', strtotime($ngay));
+      }
+    }
+  ?>
 
-        foreach ($lich_trinh_arr as $lt) {
-            if (strpos($lt, '|') !== false) {
-            // In phần trước nếu có
-            if (!empty($current_title)) {
-                echo '<div class="day">' . esc_html(trim($current_title)) . '</div>';
-                echo '<div class="content">' . nl2br(wp_kses_post(trim($current_content))) . '</div>';
-            }
+  <div class="month-tabs">
+    <button class="tab-btn active" data-month="all">Tất cả</button>
+    <?php foreach ($months as $key => $label): ?>
+      <button class="tab-btn" data-month="<?php echo esc_attr($key); ?>"><?php echo esc_html($label); ?></button>
+    <?php endforeach; ?>
+  </div>
 
-            // Bắt đầu phần mới
-            list($current_title, $first_line) = explode('|', $lt, 2);
-            $current_content = trim($first_line);
-            } else {
-            // Các dòng tiếp theo là phần nội dung tiếp tục
-            $current_content .= "\n" . $lt;
-            }
-        }
-
-        // In phần cuối cùng nếu còn
-        if (!empty($current_title)) {
-            echo '<div class="day">' . esc_html(trim($current_title)) . '</div>';
-            echo '<div class="content">' . nl2br(wp_kses_post(trim($current_content))) . '</div>';
-        }
+  <div class="table-wrapper">
+    <table class="price-table">
+      <thead>
+        <tr>
+          <th>Ngày khởi hành</th>
+          <th>Hạng tour</th>
+          <th>Giá tour</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($rows as $row): 
+          $ngay = $row['ngay_khoi_hanh'];
+          $hang = $row['hang_tour'];
+          $gia = $row['gia_tour'];
+          $con_cho = $row['con_cho'];
+          $thang = $ngay ? date('Y-m', strtotime($ngay)) : '';
         ?>
-    </div>
-    </section>
+        <tr data-month="<?php echo esc_attr($thang); ?>">
+          <td>
+            <?php echo $ngay ? date('d/m/Y', strtotime($ngay)) : ''; ?><br>
+            <span class="<?php echo ($con_cho === 'con') ? 'available' : 'unavailable'; ?>">
+              <?php echo ($con_cho === 'Còn chỗ') ? 'Còn chỗ' : 'Kín chỗ'; ?>
+            </span>
+          </td>
+          <td><?php echo esc_html($hang); ?></td>
+          <td>
+            <strong><?php echo is_numeric($gia) ? number_format($gia, 0, ',', '.') . 'đ' : 'Liên hệ'; ?></strong><br>
+            <small>+ <?php echo is_numeric($gia) ? number_format($gia * 0.01, 0, ',', '.') . ' điểm' : ''; ?></small>
+          </td>
+          <td>
+            <?php if ($con_cho === 'Còn chỗ'): ?>
+              <a href="/thanh-toan?price=<?php echo esc_attr($gia); ?>" class="btn-mua-ngay">Giữ chỗ ngay</a>
+            <?php else: ?>
+              <a href="#yeu-cau" class="btn-yeu-cau">Gửi yêu cầu</a>
+            <?php endif; ?>
+          </td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+</section>
+<?php endif; ?>
 </div>
