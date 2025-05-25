@@ -1,18 +1,37 @@
-<div style="width: 1000px; height: 128px; ; display: flex; align-items: center; padding: 20px 20px; background-color: #ffffff; ">
-  <img src="https://cdn-icons-png.flaticon.com/512/561/561127.png" alt="icon" style="width: 48px; height: 48px; margin-right: 20px;">
-  
-  <div style="flex: 1;">
-    <p style="margin: 0; font-weight: bold; font-size: 20px;">
-      Cơ hội giảm giá tới <span style="color: #e1703a;">50%</span>
-    </p>
-    <p style="margin: 4px 0 0 0; font-size: 14px;">
-      Hãy đăng ký ngay để nhận ưu đãi bí mật từ BestPrice nhé!
-    </p>
-  </div>
-  
-  <input type="email" placeholder="Nhập email của bạn" style="padding: 12px; border: none; background-color: #f3f3f3; border-radius: 5px; margin-right: 10px; width: 250px;">
-  
-  <button style="background-color: #ffe9d6; color: #e1703a; font-weight: bold; padding: 12px 18px; border: none; border-radius: 5px;">
-    Đăng ký ngay
-  </button>
+<div class ="container">
+  <section id="lichtrinh">
+    <h2>📍 Lịch trình tour</h2>
+    <div class="itinerary">
+        <?php
+        $lich_trinh_text = get_field('lich_trinh');
+        $lich_trinh_arr = explode(PHP_EOL, trim($lich_trinh_text));
+
+        $current_title = '';
+        $current_content = '';
+
+        foreach ($lich_trinh_arr as $lt) {
+            if (strpos($lt, '|') !== false) {
+            // In phần trước nếu có
+            if (!empty($current_title)) {
+                echo '<div class="day">' . esc_html(trim($current_title)) . '</div>';
+                echo '<div class="content">' . nl2br(wp_kses_post(trim($current_content))) . '</div>';
+            }
+
+            // Bắt đầu phần mới
+            list($current_title, $first_line) = explode('|', $lt, 2);
+            $current_content = trim($first_line);
+            } else {
+            // Các dòng tiếp theo là phần nội dung tiếp tục
+            $current_content .= "\n" . $lt;
+            }
+        }
+
+        // In phần cuối cùng nếu còn
+        if (!empty($current_title)) {
+            echo '<div class="day">' . esc_html(trim($current_title)) . '</div>';
+            echo '<div class="content">' . nl2br(wp_kses_post(trim($current_content))) . '</div>';
+        }
+        ?>
+    </div>
+    </section>
 </div>
