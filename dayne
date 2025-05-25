@@ -1,77 +1,47 @@
-function render_vung_mien_lead_terms($atts) {
-    ob_start();
+<div class="tour-top-grid">
+    <!-- Ảnh đại diện -->
+    <div class="tour-featured-img">
+      <?php if (has_post_thumbnail()): ?>
+        <?php the_post_thumbnail('large'); ?>
+      <?php endif; ?>
+    </div>
 
-    $atts = shortcode_atts([
-        'parent_slug' => '',
-        'style' => 'circle', // circle | rectangle | image-overlay
-        'limit' => 4
-    ], $atts);
+    <!-- Thông tin tour -->
+    <div class="tour-info-box">
+      <p class="tour-duration"><span class="icon">⏰</span> <?php the_field('thoi_gian'); ?></p>
+      <p class="tour-location">
+        <span class="icon">📍</span> <strong>Khởi hành từ:</strong> <?php the_field('khoihanh'); ?>
+      </p>
+      <p class="tour-route">
+        <span class="icon">🗺️</span> <strong>Lộ trình:</strong> <?php the_field('lo_trinh'); ?>
+      </p>
+      <?php if ($gia_km = get_field('gia_tour')): ?>
+        <p class="tour-price">
+          Giá từ: <del><?php echo number_format(get_field('gia_goc'), 0, ',', '.'); ?>đ</del>
+          <span><?php echo number_format($gia_km, 0, ',', '.'); ?>đ</span>
+        </p>
+      <?php endif; ?>
 
-    $parent_term = get_term_by('slug', $atts['parent_slug'], 'vung_mien_tour');
-    if (!$parent_term) return 'Không tìm thấy vùng miền cha.';
+      <?php if ($combo_bao_gom): ?>
+      <div class="combo-included-box">
+        <strong>Combo bao gồm:</strong>
+        <ul>
+          <?php foreach (explode("\n", $combo_bao_gom) as $line): ?>
+            <li><?= esc_html(trim($line)) ?></li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
+      <?php endif; ?>
 
-    $mid_terms = get_terms([
-        'taxonomy' => 'vung_mien_tour',
-        'parent' => $parent_term->term_id,
-        'hide_empty' => false,
-    ]);
+      <!-- Ảnh đảm bảo 100% -->
+      <div class="tour-guarantee">
+        <img src="http://localhost/travelweb/wp-content/uploads/2025/04/icon-core-value-quality.png" alt="Đảm bảo 100%">
+      </div>
 
-    $final_terms = [];
-
-    foreach ($mid_terms as $mid) {
-        $sub_terms = get_terms([
-            'taxonomy' => 'vung_mien_tour',
-            'parent' => $mid->term_id,
-            'hide_empty' => false,
-        ]);
-        $final_terms = array_merge($final_terms, $sub_terms);
-    }
-
-    if (empty($final_terms)) return 'Không có dữ liệu.';
-    $final_terms = array_slice($final_terms, 0, $atts['limit']);
-
-    echo '<div class="vungmien-list" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;">';
-
-    foreach ($final_terms as $term) {
-        $thumbnail = get_field('thumbnail', $term);
-        $count = $term->count;
-        $link = get_term_link($term);
-
-        if ($atts['style'] === 'image-overlay') {
-            echo '
-            <a href="' . esc_url($link) . '" style="position: relative; width: calc(25% - 12px); border-radius: 8px; overflow: hidden; text-decoration: none;">
-                <img src="' . esc_url($thumbnail) . '" style="width: 100%; height: 180px; object-fit: cover;">
-                <div style="position: absolute; bottom: 10px; left: 12px; color: white; font-weight: bold; font-size: 16px; text-shadow: 0 1px 3px rgba(0,0,0,0.7);">
-                    ' . esc_html($term->name) . '<br>
-                    <span style="font-weight: normal; font-size: 13px;">' . $count . ' tour</span>
-                </div>
-            </a>';
-        }
-
-        elseif ($atts['style'] === 'rectangle') {
-            echo '
-            <a href="' . esc_url($link) . '" style="flex: 1 1 220px; max-width: 250px; text-decoration:none; color:inherit;">
-              <div style="width:100%; height:140px; border-radius: 10px; overflow: hidden; margin-bottom: 6px;">
-                <img src="' . esc_url($thumbnail) . '" style="width:100%; height:100%; object-fit:cover;">
-              </div>
-              <div style="font-weight: bold;">' . esc_html($term->name) . '</div>
-              <div style="font-size: 13px; color: #888;">' . $count . ' tour</div>
-            </a>';
-        }
-
-        else {
-            echo '
-            <a href="' . esc_url($link) . '" style="text-align:center; width:120px; text-decoration: none; color:inherit;">
-              <div style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin: auto;">
-                <img src="' . esc_url($thumbnail) . '" style="width:100%; height:100%; object-fit:cover;">
-              </div>
-<strong>' . esc_html($term->name) . '</strong><br>
-              <span style="font-size: 12px;">' . $count . ' tour</span>
-            </a>';
-        }
-    }
-
-    echo '</div>';
-    return ob_get_clean();
-}
-add_shortcode('vungmien_lead', 'render_vung_mien_lead_terms');
+      <!-- Button và xem lịch -->
+      <a href="#banggia" class="tour-schedule-btn">Xem lịch khởi hành</a>
+		<?php if ($gia = get_field('gia_tour')): ?>
+  <a href="<?= site_url('/thanh-toan?price=' . intval($gia)) ?>" class="tour-request-btn">Thanh toán</a>
+<?php endif; ?>
+    </div>
+  </div>
