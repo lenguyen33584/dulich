@@ -1,27 +1,26 @@
 <?php
 /**
- * Template for taxonomy vung_mien with filter popup and responsive layout
+ * Template for taxonomy vung_mien_hotel (only for hotel post type)
  */
 
 get_header();
-
 $term = get_queried_object();
-$type = $_GET['type'] ?? 'tour';
 $paged = get_query_var('paged') ? get_query_var('paged') : 1;
 
+// Lấy filter từ URL
 $filters = [
   'khoihanh' => isset($_GET['khoihanh']) ? (array) $_GET['khoihanh'] : [],
   'thoi_gian' => isset($_GET['thoi_gian']) ? (array) $_GET['thoi_gian'] : [],
   'gia_khoang' => isset($_GET['gia_khoang']) ? (array) $_GET['gia_khoang'] : [],
-  'diemden' => isset($_GET['diemden']) ? (array) $_GET['diemden'] : []
+  'tien_ich' => isset($_GET['tien_ich']) ? (array) $_GET['tien_ich'] : []
 ];
 
 $args = [
-  'post_type' => $type,
+  'post_type' => 'hotel',
   'posts_per_page' => 10,
   'paged' => $paged,
   'tax_query' => [[
-    'taxonomy' => 'vung_mien_tour',
+    'taxonomy' => 'vung_mien_hotel',
     'field'    => 'slug',
     'terms'    => $term->slug,
     'include_children' => true
@@ -36,6 +35,7 @@ foreach ($filters['khoihanh'] as $val) {
     'compare' => 'LIKE'
   ];
 }
+
 foreach ($filters['thoi_gian'] as $val) {
   $args['meta_query'][] = [
     'key' => 'thoi_gian',
@@ -43,18 +43,20 @@ foreach ($filters['thoi_gian'] as $val) {
     'compare' => 'LIKE'
   ];
 }
+
 foreach ($filters['gia_khoang'] as $val) {
   [$min, $max] = explode('-', $val);
   $args['meta_query'][] = [
-    'key' => ($type === 'tour' ? 'gia_tour' : 'gia'),
+    'key' => 'gia',
     'value' => [(int)$min, (int)$max],
     'type' => 'NUMERIC',
     'compare' => 'BETWEEN'
   ];
 }
-foreach ($filters['diemden'] as $val) {
+
+foreach ($filters['tien_ich'] as $val) {
   $args['meta_query'][] = [
-    'key' => 'diem_den',
+    'key' => 'tien_ich',
     'value' => sanitize_text_field($val),
     'compare' => 'LIKE'
   ];
@@ -62,160 +64,114 @@ foreach ($filters['diemden'] as $val) {
 
 $query = new WP_Query($args);
 
-$all_posts = get_posts([
-  'post_type' => $type,
+// Lấy các giá trị cho bộ lọc
+$all_hotels = get_posts([
+  'post_type' => 'hotel',
   'numberposts' => -1,
   'fields' => 'ids',
   'tax_query' => [[
-    'taxonomy' => 'vung_mien_tour',
+    'taxonomy' => 'vung_mien_hotel',
     'field' => 'slug',
     'terms' => $term->slug,
     'include_children' => true
   ]]
 ]);
 
-$khoihanh_list = $thoi_gian_list = $gia_ranges = $diem_den_list = [];
-foreach ($all_posts as $pid) {
-  $kh = get_post_meta($pid, 'khoihanh', true);
-  $tg = get_post_meta($pid, 'thoi_gian', true);
-  $gia = get_post_meta($pid, ($type === 'tour' ? 'gia_tour' : 'gia'), true);
-  $dd = get_post_meta($pid, 'diem_den', true);
+$khoihanh_list = $thoi_gian_list = $gia_ranges = $tien_ich_list = [];
+foreach ($all_hotels as $pid) {
+  $kh = get_field('khoihanh', $pid);
+  $tg = get_field('thoi_gian', $pid);
+  $gia = get_field('gia', $pid);
+  $ti = get_field('tien_ich', $pid);
+
   if ($kh) $khoihanh_list[] = $kh;
   if ($tg) $thoi_gian_list[] = $tg;
   if ($gia) {
     $gia = (int)$gia;
     if ($gia <= 5000000) $gia_ranges[] = '1000000-5000000';
     elseif ($gia <= 10000000) $gia_ranges[] = '5000000-10000000';
-    elseif ($gia <= 20000000) $gia_ranges[] = '10000000-20000000';
-    elseif ($gia <= 30000000) $gia_ranges[] = '20000000-30000000';
-    else $gia_ranges[] = '30000000-900000000';
+    elseif ($gia <= 15000000) $gia_ranges[] = '10000000-15000000';
   }
-  if ($dd) $diem_den_list[] = $dd;
+  if ($ti && is_array($ti)) {
+    foreach ($ti as $item) {
+      $tien_ich_list[] = $item;
+    }
+  }
 }
-
 $khoihanh_list = array_unique($khoihanh_list);
 $thoi_gian_list = array_unique($thoi_gian_list);
 $gia_ranges = array_unique($gia_ranges);
-$diem_den_list = array_unique($diem_den_list);
+$tien_ich_list = array_unique($tien_ich_list);
 ?>
+<div class = "custom-container" style="max-width:1140px;margin:auto;display:flex;">
+<?php if (function_exists('custom_breadcrumb')) {
+    custom_breadcrumb();
+}?></div>
+<div style="max-width:1140px;margin:auto;display:flex;gap:24px;margin-top:12px">
+  <aside style="width:250px;background:#f9f9f9;padding:16px;border-radius:8px;border:1px solid #eee">
+    <h3 style="margin-top:0">Sắp xếp</h3>
+    <form id="filter-form" method="get">
+      <label><input type="radio" name="sort" value="best" checked> BestPrice đề xuất</label><br>
+      <label><input type="radio" name="sort" value="price_asc"> Giá: Thấp đến cao</label><br>
+      <label><input type="radio" name="sort" value="price_desc"> Giá: Cao đến thấp</label><br>
+      <label><input type="radio" name="sort" value="rating"> Đánh giá tốt nhất</label><br>
 
-<style>
-@media (max-width: 768px) {
-  .responsive-layout {
-    flex-direction: column;
-    padding: 12px;
-  }
-  aside {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-  }
-  aside .filter-popup {
-    background: #fff;
-    border-radius: 10px;
-    padding: 24px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-  }
-  aside.show {
-    display: flex;
-  }
-  .filter-toggle {
-    display: inline-block;
-    padding: 10px 16px;
-    background: #f2f2f2;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-bottom: 12px;
-  }
-}
+      <hr>
+      <h3>Bộ lọc</h3>
+      <p><strong>Khởi hành:</strong></p>
+      <?php foreach ($khoihanh_list as $val): ?>
+        <label><input type="checkbox" name="khoihanh[]" value="<?= esc_attr($val) ?>" <?= in_array($val, $filters['khoihanh']) ? 'checked' : '' ?>> <?= esc_html($val) ?></label><br>
+      <?php endforeach; ?>
 
-@media (min-width: 769px) {
-  aside {
-    border: 1px solid #007bff;
-    border-radius: 8px;
-    padding: 16px;
-    background: #f9f9f9;
-  }
-}
-</style>
+      <p><strong>Thời gian:</strong></p>
+      <?php foreach ($thoi_gian_list as $val): ?>
+        <label><input type="checkbox" name="thoi_gian[]" value="<?= esc_attr($val) ?>" <?= in_array($val, $filters['thoi_gian']) ? 'checked' : '' ?>> <?= esc_html($val) ?></label><br>
+      <?php endforeach; ?>
 
-<div class="responsive-layout" style="max-width:1140px;margin:auto;display:flex;gap:24px;margin-top:12px;flex-wrap:wrap;">
-  <div class="filter-toggle d-block d-md-none" onclick="document.querySelector('aside').classList.toggle('show')">Bộ lọc</div>
+      <p><strong>Mức giá trong khoảng:</strong></p>
+      <?php
+      $gia_labels = [
+        '1000000-5000000' => 'Từ 1 triệu đến 5 triệu',
+        '5000000-10000000' => 'Từ 5 triệu đến 10 triệu',
+        '10000000-15000000' => 'Từ 10 triệu đến 15 triệu'
+      ];
+      foreach ($gia_labels as $val => $label):
+        if (in_array($val, $gia_ranges)):
+      ?>
+        <label><input type="checkbox" name="gia_khoang[]" value="<?= $val ?>" <?= in_array($val, $filters['gia_khoang']) ? 'checked' : '' ?>> <?= $label ?></label><br>
+      <?php endif; endforeach; ?>
 
-  <aside>
-    <div class="filter-popup">
-      <h3 style="margin-top:0">Bộ lọc</h3>
-      <form id="filter-form" method="get">
-        <input type="hidden" name="type" value="<?= esc_attr($type) ?>">
-        <?php if ($khoihanh_list): ?>
-        <p><strong>Khởi hành:</strong></p>
-        <?php foreach ($khoihanh_list as $val): ?>
-          <label><input type="checkbox" name="khoihanh[]" value="<?= esc_attr($val) ?>" <?= in_array($val, $filters['khoihanh']) ? 'checked' : '' ?>> <?= esc_html($val) ?></label><br>
-        <?php endforeach; endif; ?>
-
-        <?php if ($thoi_gian_list): ?>
-        <p><strong>Thời gian:</strong></p>
-        <?php foreach ($thoi_gian_list as $val): ?>
-          <label><input type="checkbox" name="thoi_gian[]" value="<?= esc_attr($val) ?>" <?= in_array($val, $filters['thoi_gian']) ? 'checked' : '' ?>> <?= esc_html($val) ?></label><br>
-        <?php endforeach; endif; ?>
-
-        <p><strong>Mức giá trong khoảng:</strong></p>
-        <?php
-        $gia_labels = [
-          '1000000-5000000' => 'Từ 1 triệu đến 5 triệu',
-          '5000000-10000000' => 'Từ 5 triệu đến 10 triệu',
-          '10000000-20000000' => 'Từ 10 triệu đến 20 triệu',
-          '20000000-30000000' => 'Từ 20 triệu đến 30 triệu',
-          '30000000-900000000' => 'Trên 30 triệu'
-        ];
-        foreach ($gia_labels as $val => $label):
-          if (in_array($val, $gia_ranges)):
-        ?>
-          <label><input type="checkbox" name="gia_khoang[]" value="<?= $val ?>" <?= in_array($val, $filters['gia_khoang']) ? 'checked' : '' ?>> <?= $label ?></label><br>
-        <?php endif; endforeach; ?>
-
-        <?php if ($diem_den_list): ?>
-        <p><strong>Điểm đến:</strong></p>
-        <?php foreach ($diem_den_list as $val): ?>
-          <label><input type="checkbox" name="diemden[]" value="<?= esc_attr($val) ?>" <?= in_array($val, $filters['diemden']) ? 'checked' : '' ?>> <?= esc_html($val) ?></label><br>
-        <?php endforeach; endif; ?>
-      </form>
-    </div>
+      <p><strong>Tiện ích:</strong></p>
+      <?php foreach ($tien_ich_list as $val): ?>
+        <label><input type="checkbox" name="tien_ich[]" value="<?= esc_attr($val) ?>" <?= in_array($val, $filters['tien_ich']) ? 'checked' : '' ?>> <?= esc_html($val) ?></label><br>
+      <?php endforeach; ?>
+    </form>
   </aside>
 
   <main style="flex:1">
-    <h2>Kết quả <?= ($type === 'tour' ? 'tour' : 'khách sạn') ?> ở <?= esc_html($term->name) ?></h2>
+    <h2>Khách sạn ở <?= esc_html($term->name) ?></h2>
     <?php if ($query->have_posts()): ?>
-    <div style="display:flex;flex-direction:column;gap:24px">
-      <?php while ($query->have_posts()): $query->the_post(); ?>
-      <div style="border:1px solid #eee;padding:16px;border-radius:8px;display:flex;gap:16px;flex-wrap:wrap">
-        <div style="flex:0 0 200px">
-          <?php the_post_thumbnail('medium', ['style'=>'border-radius:8px']) ?>
-        </div>
-        <div style="flex:1">
-          <h3 style="margin:0"><a href="<?php the_permalink(); ?>" style="color:#333;text-decoration:none"><?php the_title(); ?></a></h3>
-          <p><strong>Khởi hành:</strong> <?php the_field('khoihanh'); ?> | <strong>Thời gian:</strong> <?php the_field('thoi_gian'); ?></p>
-          <p><strong>Giá:</strong> <?= number_format(get_field($type === 'tour' ? 'gia_tour' : 'gia'), 0, ',', '.') ?> đ</p>
-          <a href="<?php the_permalink(); ?>" style="color:#e1703a;font-weight:bold">Xem chi tiết &raquo;</a>
-        </div>
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <?php while ($query->have_posts()): $query->the_post(); ?>
+          <div style="border:1px solid #eee;padding:16px;border-radius:8px;display:flex;gap:16px">
+            <div style="flex:0 0 200px">
+              <?php the_post_thumbnail('medium', ['style'=>'border-radius:8px']) ?>
+            </div>
+            <div style="flex:1">
+              <h3 style="margin:0"><a href="<?php the_permalink(); ?>" style="color:#333;text-decoration:none"><?php the_title(); ?></a></h3>
+              <p><strong>Khởi hành:</strong> <?php the_field('khoihanh'); ?> | <strong>Thời gian:</strong> <?php the_field('thoi_gian'); ?></p>
+              <p><strong>Giá:</strong> <?= number_format(get_field('gia'), 0, ',', '.') ?> đ</p>
+              <a href="<?php the_permalink(); ?>" style="color:#e1703a;font-weight:bold">Xem chi tiết &raquo;</a>
+            </div>
+          </div>
+        <?php endwhile; ?>
       </div>
-      <?php endwhile; ?>
-    </div>
-    <div style="margin-top:24px">
-      <?= paginate_links(['total' => $query->max_num_pages]) ?>
-    </div>
-    <?php else: ?><p>Không tìm thấy kết quả phù hợp.</p><?php endif; ?>
+      <div style="margin-top:24px">
+        <?= paginate_links(['total' => $query->max_num_pages]) ?>
+      </div>
+    <?php else: ?>
+      <p>Không tìm thấy khách sạn phù hợp.</p>
+    <?php endif; ?>
     <?php wp_reset_postdata(); ?>
   </main>
 </div>
@@ -223,11 +179,11 @@ $diem_den_list = array_unique($diem_den_list);
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("filter-form");
-  if (!form) return;
-  const inputs = form.querySelectorAll("input[type=checkbox]");
+  const inputs = form.querySelectorAll("input[type=checkbox], input[type=radio]");
   inputs.forEach(input => {
     input.addEventListener("change", () => form.submit());
   });
 });
 </script>
+
 <?php get_footer(); ?>
