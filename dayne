@@ -1,75 +1,77 @@
-function render_combo_grid() {
-    $args = array(
-        'post_type' => 'combo', // 👉 Đổi thành post type bạn muố
-        'posts_per_page' => 6,
-    );
+function render_vung_mien_lead_terms($atts) {
+    ob_start();
 
-    $query = new WP_Query($args);
-    $output = '<div class="tour-grid" style="display: flex; flex-wrap: wrap; gap: 20px;">';
+    $atts = shortcode_atts([
+        'parent_slug' => '',
+        'style' => 'circle', // circle | rectangle | image-overlay
+        'limit' => 4
+    ], $atts);
 
-    while ($query->have_posts()) : $query->the_post();
-        $id = get_the_ID();
-        $title = get_the_title();
-        $permalink = get_permalink();
-        $thumbnail = get_the_post_thumbnail_url($id, 'medium');
-        
-        // Lấy các ACF field – bạn tự thay field tương ứng nhé
-        $badge = get_field('noi_bat', $id);
-        $rating = get_field('danh_gia', $id);
-        $rating_text = get_field('rating_text', $id);
-        $rating_count = get_field('so_luot_danh_gia', $id);
-        $places = get_field('lo_trinh', $id);
-        $duration = get_field('thoi_gian', $id);
-        $old_price = get_field('gia_goc', $id);
-        $new_price = get_field('gia_tour', $id);
-		$promotion = get_field('promotion', $id);
-		$promotion_html = '';
+    $parent_term = get_term_by('slug', $atts['parent_slug'], 'vung_mien_tour');
+    if (!$parent_term) return 'Không tìm thấy vùng miền cha.';
 
-		if (is_array($promotion)) {
-			foreach ($promotion as $item) {
-				$promotion_html .= '<div style="margin-bottom: 4px;">🎁 ' . esc_html($item) . '</div>';
-			}
-		} elseif (!empty($promotion)) {
-			$promotion_html = '<div>🎁 ' . esc_html($promotion) . '</div>';
-		}
+    $mid_terms = get_terms([
+        'taxonomy' => 'vung_mien_tour',
+        'parent' => $parent_term->term_id,
+        'hide_empty' => false,
+    ]);
 
-        $output .= '
-        
-        <div class="tour-card" style="width:32%; border: 1px solid #eee; border-radius: 10px; overflow: hidden; background: #fff;">
-            <a href="' . $permalink . '" style="text-decoration: none; color: inherit;">
-                <div style="position: relative;">
-                    <img src="' . $thumbnail . '" alt="' . esc_attr($title) . '" style="width: 100%; height: 180px; object-fit: cover;">
-                    ' . ($badge ? '<div style="position: absolute; top: 10px; left: 10px; background: red; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px;">' . esc_html($badge) . '</div>' : '') . '
+    $final_terms = [];
+
+    foreach ($mid_terms as $mid) {
+        $sub_terms = get_terms([
+            'taxonomy' => 'vung_mien_tour',
+            'parent' => $mid->term_id,
+            'hide_empty' => false,
+        ]);
+        $final_terms = array_merge($final_terms, $sub_terms);
+    }
+
+    if (empty($final_terms)) return 'Không có dữ liệu.';
+    $final_terms = array_slice($final_terms, 0, $atts['limit']);
+
+    echo '<div class="vungmien-list" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;">';
+
+    foreach ($final_terms as $term) {
+        $thumbnail = get_field('thumbnail', $term);
+        $count = $term->count;
+        $link = get_term_link($term);
+
+        if ($atts['style'] === 'image-overlay') {
+            echo '
+            <a href="' . esc_url($link) . '" style="position: relative; width: calc(25% - 12px); border-radius: 8px; overflow: hidden; text-decoration: none;">
+                <img src="' . esc_url($thumbnail) . '" style="width: 100%; height: 180px; object-fit: cover;">
+                <div style="position: absolute; bottom: 10px; left: 12px; color: white; font-weight: bold; font-size: 16px; text-shadow: 0 1px 3px rgba(0,0,0,0.7);">
+                    ' . esc_html($term->name) . '<br>
+                    <span style="font-weight: normal; font-size: 13px;">' . $count . ' tour</span>
                 </div>
-                <div style="padding: 12px;">
-                    <h3 style="font-size: 16px; margin: 0 0 6px;">' . esc_html($title) . '</h3>
-                    
-                    <div style="margin-bottom: 8px;">
-                        <span style="background:#007bff; color:white; padding:2px 6px; border-radius:4px;">' . esc_html($rating) . '</span>
-                        <strong>' . esc_html($rating_text) . '</strong> – ' . esc_html($rating_count) . ' đánh giá
-                    </div>
+            </a>';
+        }
 
-                    <div style="font-size: 14px; color: #555; margin-bottom: 8px;">
-                        📍 ' . esc_html($places) . '
-                    </div>
+        elseif ($atts['style'] === 'rectangle') {
+            echo '
+            <a href="' . esc_url($link) . '" style="flex: 1 1 220px; max-width: 250px; text-decoration:none; color:inherit;">
+              <div style="width:100%; height:140px; border-radius: 10px; overflow: hidden; margin-bottom: 6px;">
+                <img src="' . esc_url($thumbnail) . '" style="width:100%; height:100%; object-fit:cover;">
+              </div>
+              <div style="font-weight: bold;">' . esc_html($term->name) . '</div>
+              <div style="font-size: 13px; color: #888;">' . $count . ' tour</div>
+            </a>';
+        }
 
-                    <div style="font-size:14px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="padding:4px 6px; background:#eee; border-radius:4px;">' . esc_html($duration) . '</span>
-                        <span>
-						' . (is_numeric($old_price) && $old_price > 0 ? '<del style="color:gray;">' . number_format($old_price, 0, ',', '.') . 'đ</del><br>' : '') . '
-						' . (is_numeric($new_price) && $new_price > 0 ? '<strong style="color:red;">' . number_format($new_price, 0, ',', '.') . 'đ</strong>' : '<strong>Liên hệ</strong>') . '
-						</span>
-                    </div>
+        else {
+            echo '
+            <a href="' . esc_url($link) . '" style="text-align:center; width:120px; text-decoration: none; color:inherit;">
+              <div style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin: auto;">
+                <img src="' . esc_url($thumbnail) . '" style="width:100%; height:100%; object-fit:cover;">
+              </div>
+<strong>' . esc_html($term->name) . '</strong><br>
+              <span style="font-size: 12px;">' . $count . ' tour</span>
+            </a>';
+        }
+    }
 
-                    ' . ($promotion_html ? '<div style="margin-top:10px; background: #fce9d2; color:#e1703a; padding: 5px 10px; border-radius: 6px; font-size: 13px;">' . $promotion_html . '</div>' : '') . '
-                </div>
-            </a>
-        </div>';
-    endwhile;
-
-    $output .= '</div>';
-    wp_reset_postdata();
-
-    return $output;
+    echo '</div>';
+    return ob_get_clean();
 }
-add_shortcode('combo_grid', 'render_combo_grid');
+add_shortcode('vungmien_lead', 'render_vung_mien_lead_terms');
