@@ -1,76 +1,189 @@
-function render_tour_grid() {
-    $args = array(
-        'post_type' => 'tour', // 👉 Đổi thành post type bạn muốn
-        'posts_per_page' => 6,
-    );
+function hotel_filter_form_shortcode() {
+    ob_start();
+    ?>
 
-    $query = new WP_Query($args);
-    $output = '<div class="tour-grid" style="display: flex; flex-wrap: wrap; gap: 20px;">';
+    <style>
+    .hotel-search-wrapper {
+        max-width: 1140px;
+        margin-top: -100px;
+        position: relative;
+        z-index: 99;
+    }
+    .hotel-search-form {
+        background: #fff;
+        padding: 24px 32px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .hotel-search-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .hotel-search-form label {
+        font-weight: 500;
+        font-size: 14px;
+        color: #888;
+        margin-bottom: 4px;
+        display: block;
+    }
+    .hotel-search-form select,
+    .hotel-search-form input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+    .guest-summary {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .guest-box {
+        position: absolute;
+        background: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        padding: 15px;
+        border-radius: 10px;
+        display: none;
+        top: 100%;
+        width: 260px;
+        margin-top: 5px;
+        z-index: 100;
+    }
+    .guest-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .guest-counter button {
+        background: #eee;
+        border: none;
+        padding: 4px 10px;
+        border-radius: 50%;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .guest-counter span {
+        margin: 0 10px;
+        font-weight: bold;
+    }
+    .search-button button {
+        padding: 12px 24px;
+        background-color: #e1703a;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    </style>
 
-    while ($query->have_posts()) : $query->the_post();
-        $id = get_the_ID();
-        $title = get_the_title();
-        $permalink = get_permalink();
-        $thumbnail = get_the_post_thumbnail_url($id, 'medium');
-        
-        // Lấy các ACF field – bạn tự thay field tương ứng nhé
-        $badge = get_field('noi_bat', $id);
-        $rating = get_field('danh_gia', $id);
-        $rating_text = get_field('rating_text', $id);
-        $rating_count = get_field('so_luot_danh_gia', $id);
-        $quote = get_field('quote', $id);
-        $quote_name = get_field('quote_name', $id);
-        $places = get_field('lo_trinh', $id);
-        $duration = get_field('thoi_gian', $id);
-        $old_price = get_field('gia_goc', $id);
-        $new_price = get_field('gia_tour', $id);
-		$promotion = get_field('promotion', $id);
-		$promotion_html = '';
+    <div class="hotel-search-wrapper">
+    <form action="" method="get" class="hotel-search-form" onsubmit="return redirectToLocation(event);">
 
-		if (is_array($promotion)) {
-			foreach ($promotion as $item) {
-				$promotion_html .= '<div style="margin-bottom: 4px;">🎁 ' . esc_html($item) . '</div>';
-			}
-		} elseif (!empty($promotion)) {
-			$promotion_html = '<div>🎁 ' . esc_html($promotion) . '</div>';
-		}
+        <!-- Địa điểm -->
+        <div>
+            <label>ĐỊA ĐIỂM</label>
+            <select name="location" id="location-select">
+                <option value="">Chọn tỉnh/thành</option>
+                <?php
+                $terms = get_terms([
+                    'taxonomy' => 'vung_mien_hotel',
+                    'hide_empty' => false,
+                ]);
+                foreach ($terms as $term) {
+                    $parent = get_term($term->parent, 'vung_mien_hotel');
+                    $grandparent = $parent ? get_term($parent->parent, 'vung_mien_hotel') : null;
+                    if ($grandparent) {
+                        echo '<option value="' . esc_attr($term->slug) . '">' . esc_html($term->name) . '</option>';
+                    }
+                }
+                ?>
+            </select>
+        </div>
 
-        $output .= '
-        <div class="tour-card" style="width: 32%; border: 1px solid #eee; border-radius: 10px; overflow: hidden; background: #fff;">
-            <a href="' . $permalink . '" style="text-decoration: none; color: inherit;">
-                <div style="position: relative;">
-                    <img src="' . $thumbnail . '" alt="' . esc_attr($title) . '" style="width: 100%; height: 180px; object-fit: cover;">
-                    ' . ($badge ? '<div style="position: absolute; top: 10px; left: 10px; background: red; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px;">' . esc_html($badge) . '</div>' : '') . '
+        <!-- Hàng dưới: ngày + khách + nút -->
+        <div class="hotel-search-row">
+            <!-- Nhận phòng -->
+            <div style="flex: 1; min-width: 200px;">
+                <label>NHẬN PHÒNG</label>
+                <input type="date" name="checkin">
+            </div>
+
+            <!-- Trả phòng -->
+            <div style="flex: 1; min-width: 200px;">
+                <label>TRẢ PHÒNG</label>
+                <input type="date" name="checkout">
+            </div>
+
+            <!-- Hành khách -->
+            <div style="flex: 1; min-width: 200px; position: relative;">
+                <label>HÀNH KHÁCH</label>
+                <div class="guest-summary" onclick="document.getElementById('guest-box').style.display = (document.getElementById('guest-box').style.display === 'block' ? 'none' : 'block')">
+                    <span id="guest-summary-text">2 khách</span>
                 </div>
-                <div style="padding: 12px;">
-                    <h3 style="font-size: 16px; margin: 0 0 6px;">' . esc_html($title) . '</h3>
-                    
-                    <div style="margin-bottom: 8px;">
-                        <span style="background:#007bff; color:white; padding:2px 6px; border-radius:4px;">' . esc_html($rating) . '</span>
-                        <strong>' . esc_html($rating_text) . '</strong> – ' . esc_html($rating_count) . ' đánh giá
+                <div class="guest-box" id="guest-box">
+                    <div class="guest-row">
+                        <span>Người lớn</span>
+                        <div class="guest-counter">
+                            <button type="button" onclick="updateGuest('adult', -1)">-</button>
+                            <span id="adult-count">2</span>
+                            <button type="button" onclick="updateGuest('adult', 1)">+</button>
+                        </div>
                     </div>
-
-                    <div style="font-size: 14px; color: #555; margin-bottom: 8px;">
-                        📍 ' . esc_html($places) . '
+                    <div class="guest-row">
+                        <span>Trẻ em</span>
+                        <div class="guest-counter">
+                            <button type="button" onclick="updateGuest('child', -1)">-</button>
+                            <span id="child-count">0</span>
+                            <button type="button" onclick="updateGuest('child', 1)">+</button>
+                        </div>
                     </div>
-
-                    <div style="font-size:14px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="padding:4px 6px; background:#eee; border-radius:4px;">' . esc_html($duration) . '</span>
-                        <span>
-                            <del style="color:gray;">' . number_format($old_price, 0, ',', '.') . 'đ</del><br>
-                            <strong style="color:red;">' . number_format($new_price, 0, ',', '.') . 'đ</strong>
-                        </span>
+                    <div class="guest-row">
+                        <span>Em bé</span>
+                        <div class="guest-counter">
+                            <button type="button" onclick="updateGuest('baby', -1)">-</button>
+                            <span id="baby-count">0</span>
+                            <button type="button" onclick="updateGuest('baby', 1)">+</button>
+                        </div>
                     </div>
-
-                    ' . ($promotion_html ? '<div style="margin-top:10px; background: #fce9d2; color:#e1703a; padding: 5px 10px; border-radius: 6px; font-size: 13px;">' . $promotion_html . '</div>' : '') . '
                 </div>
-            </a>
-        </div>';
-    endwhile;
+                <input type="hidden" name="adult" id="adult-input" value="2">
+                <input type="hidden" name="child" id="child-input" value="0">
+                <input type="hidden" name="baby" id="baby-input" value="0">
+            </div>
 
-    $output .= '</div>';
-    wp_reset_postdata();
+            <!-- Nút tìm -->
+            <div class="search-button" style="flex: 0 0 auto;">
+                <button type="submit">Tìm ngay</button>
+            </div>
+        </div>
 
-    return $output;
+    </form>
+    </div>
+	 <script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const form = document.querySelector('.hotel-search-form');
+			form.addEventListener('submit', function (e) {
+				e.preventDefault();
+				const select = form.querySelector('[name="location"]');
+				const slug = select.value;
+
+				if (slug) {
+					window.location.href = '/vung_mien_hotel/' + slug + '/';
+				} 
+			});
+		});
+		</script>
+
+    <?php
+    return ob_get_clean();
 }
-add_shortcode('tour_grid', 'render_tour_grid');
+add_shortcode('hotel_filter_form', 'hotel_filter_form_shortcode');
