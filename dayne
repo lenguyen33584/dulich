@@ -1,46 +1,237 @@
-<div class = "custom-container" style="max-width:1140px;margin:auto;display:flex;">
-<?php if (function_exists('custom_breadcrumb')) {
-    custom_breadcrumb();
-}?></div>
-<div style="max-width:1140px;margin:auto;padding:24px;">
-<style>
-@media (max-width: 768px) {
-  .custom-container {
-    flex-direction: column !important;
-    gap: 16px;
-  }
-  .custom-container > div {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-  }
-  .custom-container img.wp-post-image {
-    width: 100% !important;
-    height: auto !important;
-    display: block;
-    border-radius: 12px;
-  }
-}
-</style>
-  <!-- Ảnh đại diện -->
-  <div style="display:flex;gap:16px;align-items:flex-start;">
-    <?php if (has_post_thumbnail()) : ?>
-      <div style="flex:1;">
-        <?php the_post_thumbnail('full', ['style'=>'width:100%;border-radius:12px;']); ?>
-      </div>
-    <?php endif; ?>
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-start;gap:10px;">
-      <h1><?php the_title(); ?></h1>
-      <div style="font-size:14px;margin-bottom:0;">
-        <strong style="color:green;font-size:18px;">
-          <?php echo $diem; ?>
-        </strong>
-        <span style="margin-left:8px;">Tuyệt vời - <?php echo $so_danh_gia; ?> đánh giá</span>
-      </div>
-      <div style="color:#e53935;font-size:20px;font-weight:bold;margin:0;">
-        <?php echo number_format($gia, 0, ',', '.'); ?>đ
-      </div>
-		<?php if ($gia = get_field('gia_tour')): ?>
-  <a href="<?= site_url('/thanh-toan?price=' . intval($gia)) ?>" class="tour-request-btn"style="background:#e1703a;color:white;padding:12px 24px;border-radius:8px;text-align:center;max-width:200px;">Thanh toán</a>
-<?php endif; ?>
+function form_thanh_toan_shortcode() {
+    ob_start();
+    $gia_tour = isset($_GET['price']) ? intval($_GET['price']) : 0;
+    ?>
+    <style>
+    .form-tour-wrapper {
+        max-width: 800px;
+        margin: auto;
+        font-family: Arial, sans-serif;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    .form-grid label {
+        font-weight: 500;
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+    }
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-top: 5px;
+        font-size: 14px;
+    }
+    .form-grid textarea {
+        resize: vertical;
+    }
+    .form-grid .full-row {
+        grid-column: 1 / -1;
+    }
+    .form-submit {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .form-submit button {
+        padding: 12px 40px;
+        background: #660000;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    .highlight-option {
+        background: #fff8e1;
+        padding: 10px;
+        border: 2px solid #ffa000;
+        border-radius: 6px;
+    }
+    .price-display {
+        font-weight: bold;
+        font-size: 18px;
+        margin-top: 10px;
+        color: #333;
+    }
+    </style>
+
+    <div class="form-tour-wrapper">
+        <form id="payment-form">
+            <div class="form-grid">
+                <p class="full-row price-display">
+                    Tổng giá tour: <span id="final-price"><?= number_format($gia_tour, 0, ',', '.') ?> đ</span>
+                </p>
+
+                <label>Ngày khởi hành:
+                    <input type="date" name="ngay_khoi_hanh" onchange="updatePrice()">
+                </label>
+
+                <label>Điểm khởi hành:
+                    <select name="diem_khoi_hanh" onchange="updatePrice()">
+                        <option value="Hà Nội">Hà Nội</option>
+                        <option value="TP HCM">TP HCM</option>
+                        <option value="Đà Nẵng">Đà Nẵng</option>
+                    </select>
+                </label>
+                <div class="full-row" style="display:grid; grid-template-columns:repeat(3,1fr);gap:15px;">
+                <label>Người lớn:
+                    <select name="nguoi_lon" id="nguoi_lon" onchange="updatePrice()">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </label>
+
+                <label>Trẻ em (2-12):
+                    <select name="tre_em" id="tre_em" onchange="updatePrice()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </label>
+
+                <label>Em bé (<2):
+                    <select name="em_be" id="em_be" onchange="updatePrice()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </label>
+            </div>
+                <label>Quý danh:
+                    <select name="quy_danh">
+                        <option value="Ông">Ông</option>
+                        <option value="Bà">Bà</option>
+                    </select>
+                </label>
+
+                <label>Họ tên: (*)
+                    <input type="text" id="user-name" placeholder="Họ tên của bạn" required>
+                </label>
+
+                <label>Email: (*)
+                    <input type="email" id="user-email" placeholder="Email" required>
+                </label>
+
+                <label>Số điện thoại:
+                    <input type="tel" id="sdt" placeholder="SĐT">
+                </label>
+
+                <label class="full-row highlight-option">
+                    Hình thức thanh toán:
+                    <select id="payment_type" onchange="updatePrice()" style="margin-top: 5px; padding: 10px;">
+                        <option value="100">Thanh toán 100% (giảm 15%)</option>
+                        <option value="50">Thanh toán 50% (giảm 5%)</option>
+                    </select>
+                </label>
+
+                <label class="full-row">Yêu cầu đặc biệt:
+                    <textarea name="yeu_cau_dac_biet" rows="3"></textarea>
+                </label>
+
+                <div id="qr-popup" class="full-row" style="text-align:center;"></div>
+            </div>
+
+            <div class="form-submit">
+                <button type="button" onclick="submitPayment()">Xác nhận thanh toán</button>
+            </div>
+        </form>
     </div>
-  </div>
+
+    <script>
+        let basePrice = <?= $gia_tour ?>;
+        let calculatedAmount = basePrice;
+        let countdownInterval;
+
+        function updatePrice() {
+            const nguoiLon = parseInt(document.getElementById('nguoi_lon').value || 0);
+            const treEm = parseInt(document.getElementById('tre_em').value || 0);
+            const emBe = parseInt(document.getElementById('em_be').value || 0);
+            const paymentType = parseInt(document.getElementById('payment_type').value || 0);
+
+            let total = (nguoiLon * basePrice) + (treEm * basePrice * 0.5); // Em bé miễn phí
+
+            if (paymentType === 50) {
+                total *= 0.95;
+            } else if (paymentType === 100) {
+                total *= 0.85;
+            }
+
+            calculatedAmount = Math.round(total);
+            document.getElementById('final-price').innerText = calculatedAmount.toLocaleString('vi-VN') + ' đ';
+        }
+
+        function startCountdown(duration, display) {
+            let timer = duration, minutes, seconds;
+            countdownInterval = setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+        }
+
+        function submitPayment() {
+            const name = document.getElementById('user-name').value.trim();
+            const email = document.getElementById('user-email').value.trim();
+            const qrPopup = document.getElementById("qr-popup");
+
+            if (!name || !email || calculatedAmount === 0) {
+                alert('Vui lòng nhập đủ Họ tên, Email và chọn hình thức thanh toán.');
+                return;
+            }
+
+            // Hiển thị trạng thái loading và đếm ngược
+            qrPopup.innerHTML = `
+                <div style="text-align:center">
+                    <p style="font-weight:bold; color:#cc0000;">Vui lòng chờ 2 phút để hệ thống xác nhận thông tin và thanh toán...</p>
+                    <div style="font-size:24px; font-weight:bold; margin-top:10px;" id="countdown">02:00</div>
+                </div>
+            `;
+
+            startCountdown(120, document.getElementById("countdown"));
+
+            const formData = new URLSearchParams();
+            formData.append('price', calculatedAmount);
+
+            fetch("https://mill-moses-cpu-allowance.trycloudflare.com/run-bot", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData.toString()
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Hệ thống đang bận hoặc lỗi, vui lòng thử lại.");
+                return res.blob();
+            })
+            .then(blob => {
+                clearInterval(countdownInterval);
+                const url = URL.createObjectURL(blob);
+                qrPopup.innerHTML = `<img src="${url}" style="max-width:300px;">`;
+            })
+            .catch(err => {
+                clearInterval(countdownInterval);
+                console.error(err);
+                qrPopup.innerHTML = `<p style='color:red; font-weight:bold;'>${err.message}</p>`;
+            });
+        }
+
+        // Tự tính giá khi load trang
+        window.addEventListener("DOMContentLoaded", updatePrice);
+    </script>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('form_thanh_toan', 'form_thanh_toan_shortcode');
