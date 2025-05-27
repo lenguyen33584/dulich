@@ -3,6 +3,24 @@
     custom_breadcrumb();
 }?></div>
 <div style="max-width:1140px;margin:auto;padding:24px;">
+<style>
+@media (max-width: 768px) {
+  .custom-container {
+    flex-direction: column !important;
+    gap: 16px;
+  }
+  .custom-container > div {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  .custom-container img.wp-post-image {
+    width: 100% !important;
+    height: auto !important;
+    display: block;
+    border-radius: 12px;
+  }
+}
+</style>
   <!-- Ảnh đại diện -->
   <div style="display:flex;gap:16px;align-items:flex-start;">
     <?php if (has_post_thumbnail()) : ?>
