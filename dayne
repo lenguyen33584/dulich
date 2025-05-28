@@ -1,52 +1,70 @@
-    <div class="tour-search-wrapper">
-    <div class="tour-search-title">Tìm tour giá tốt</div>
-    <form onsubmit="return redirectToVungMien(event);" class="tour-search-form">
+function render_vung_mien_leaf_terms($atts) {
+    ob_start();
 
-        <!-- Địa điểm -->
-        <div style="flex: 1;">
-            <label>ĐỊA ĐIỂM</label>
-            <select name="diadiem">
-			  <option value="">Bạn muốn đi đâu?</option>
-			  <?php
-			  $terms = get_terms([
-				  'taxonomy' => 'vung_mien_tour',
-				  'hide_empty' => false,
-				]);
+    $atts = shortcode_atts([
+        'parent_slug' => '',
+        'style' => 'circle', // circle | rectangle | image-overlay
+        'limit' => 8
+    ], $atts);
 
-			  foreach ($terms as $term) {
-				  // Tạo slug phân cấp đầy đủ
-				  $slug_parts = [];
-				  $current = $term;
-				  while ($current && $current->parent != 0) {
-					  array_unshift($slug_parts, $current->slug);
-					  $current = get_term($current->parent, 'vung_mien_tour');
-				  }
-				  if ($current) {
-					  array_unshift($slug_parts, $current->slug);
-				  }
-				  $full_slug = $term->slug;
+    $parent_term = get_term_by('slug', $atts['parent_slug'], 'vung_mien_tour');
+    if (!$parent_term) return 'Không tìm thấy vùng miền cha.';
 
-				  echo '<option value="' . esc_attr($term->slug) . '" data-full-slug="' . esc_attr($full_slug) . '">' . esc_html($term->name) . '</option>';
-			  }
-			  ?>
-			</select>
-        </div>
+    $mid_terms = get_terms([
+        'taxonomy' => 'vung_mien_tour',
+        'parent' => $parent_term->term_id,
+        'hide_empty' => false,
+    ]);
 
-        <!-- Khởi hành -->
-        <div style="flex: 1;">
-            <label>KHỞI HÀNH TỪ</label>
-            <select name="khoihanh">
-                <option value="">Vui lòng chọn</option>
-                <option value="ha-noi">Hà Nội</option>
-                <option value="ho-chi-minh">Hồ Chí Minh</option>
-                <option value="da-nang">Đà Nẵng</option>
-                <option value="hai-phong">Hải Phòng</option>
-            </select>
-        </div>
+    $final_terms = [];
+    foreach ($mid_terms as $mid) {
+        $sub_terms = get_terms([
+            'taxonomy' => 'vung_mien_tour',
+            'parent' => $mid->term_id,
+            'hide_empty' => false,
+        ]);
+        $final_terms = array_merge($final_terms, $sub_terms);
+    }
 
-        <!-- Nút -->
-        <div style="flex: 0 0 auto;">
-            <button type="submit">Tìm ngay</button>
-        </div>
-    </form>
-    </div>
+    if (empty($final_terms)) return 'Không có dữ liệu.';
+
+    // Sắp xếp theo số lượng bài viết (count) giảm dần
+    usort($final_terms, function($a, $b) {
+        return $b->count - $a->count;
+    });
+
+    // Lấy đúng số lượng limit (ví dụ 8)
+    $final_terms = array_slice($final_terms, 0, $atts['limit']);
+
+    // Style hiển thị
+    $style = $atts['style'];
+
+    // Bắt đầu HTML
+    echo '<div class="vungmien-list" style="display: flex; flex-wrap: nowrap; gap: 16px; justify-content: center; overflow-x: auto;">';
+
+    foreach ($final_terms as $term) {
+        $thumbnail = get_field('thumbnail', $term);
+        $count = $term->count;
+        $link = get_term_link($term);
+
+        if ($style === 'circle') {
+            echo '
+            <a href="' . esc_url($link) . '" style="text-align:center; width:100px; flex: 0 0 auto; text-decoration: none; color:inherit;">
+              <div style="width: 110px; height: 110px; border-radius: 20%; overflow: hidden; margin: auto;">
+                <img src="' . esc_url($thumbnail) . '" style="width:100%; height:100%; object-fit:cover;">
+              </div>
+              <strong style="font-size: 14px; display: block; margin-top: 5px;">' . esc_html($term->name) . '</strong>
+              <span style="font-size: 12px; color:#888;">' . $count . ' tour</span>
+            </a>';
+        }
+
+        // Các style khác nếu dùng tiếp
+        elseif ($style === 'rectangle' || $style === 'image-overlay') {
+            // Không chỉnh lại ở đây vì bạn không dùng cho nước ngoài
+        }
+    }
+
+    echo '</div>';
+    return ob_get_clean();
+}
+add_shortcode('vungmien_leaf', 'render_vung_mien_leaf_terms');
