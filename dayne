@@ -1,55 +1,12 @@
-function tour_search_form_shortcode() {
-    ob_start(); ?>
-    
-    <style>
-    .tour-search-wrapper {
-        max-width: 1140px;
-        margin-top: -60px;
-        position: relative;
-        z-index: 99;
-    }
-    .tour-search-form {
-        background: #fff;
-        padding: 24px 32px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        display: flex;
-        gap: 16px;
-        align-items: flex-end;
-        flex-wrap: wrap;
-    }
-    .tour-search-form label {
-        font-weight: 500;
-        font-size: 14px;
-        color: #888;
-        display: block;
-        margin-bottom: 6px;
-    }
-    .tour-search-form select {
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-    }
-    .tour-search-form button {
-        padding: 12px 24px;
-        background-color: #e1703a;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    </style>
-
     <div class="tour-search-wrapper">
+    <div class="tour-search-title">Tìm tour giá tốt</div>
     <form onsubmit="return redirectToVungMien(event);" class="tour-search-form">
 
         <!-- Địa điểm -->
         <div style="flex: 1;">
             <label>ĐỊA ĐIỂM</label>
             <select name="diadiem">
-			  <option value="">--Chọn địa điểm--</option>
+			  <option value="">Bạn muốn đi đâu?</option>
 			  <?php
 			  $terms = get_terms([
 				  'taxonomy' => 'vung_mien_tour',
@@ -79,7 +36,7 @@ function tour_search_form_shortcode() {
         <div style="flex: 1;">
             <label>KHỞI HÀNH TỪ</label>
             <select name="khoihanh">
-                <option value="">--Chọn--</option>
+                <option value="">Vui lòng chọn</option>
                 <option value="ha-noi">Hà Nội</option>
                 <option value="ho-chi-minh">Hồ Chí Minh</option>
                 <option value="da-nang">Đà Nẵng</option>
@@ -93,23 +50,3 @@ function tour_search_form_shortcode() {
         </div>
     </form>
     </div>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-		const form = document.querySelector('.tour-search-form');
-		form.addEventListener('submit', function (e) {
-			e.preventDefault();
-			const select = form.querySelector('[name="diadiem"]');
-			const slug = select.options[select.selectedIndex].getAttribute('data-full-slug');
-
-			if (slug) {
-				window.location.href = '/vung_mien_tour/' + slug + '/';
-			}
-		});
-	});
-    </script>
-
-    <?php
-    return ob_get_clean();
-}
-add_shortcode('tour_search_form', 'tour_search_form_shortcode');
