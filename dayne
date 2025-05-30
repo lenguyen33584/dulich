@@ -1,70 +1,61 @@
-function render_vung_mien_leaf_terms($atts) {
-    ob_start();
+<section id="danhgia">
+  <h2>📌 Đánh giá</h2>
 
-    $atts = shortcode_atts([
-        'parent_slug' => '',
-        'style' => 'circle', // circle | rectangle | image-overlay
-        'limit' => 8
-    ], $atts);
+  <div class="review-summary">
+    <div class="review-score">9.1</div>
+    <div class="review-details">
+      <p><strong>Tuyệt vời</strong></p>
+      <p>2 đánh giá</p>
+    </div>
+  </div>
 
-    $parent_term = get_term_by('slug', $atts['parent_slug'], 'vung_mien_tour');
-    if (!$parent_term) return 'Không tìm thấy vùng miền cha.';
-
-    $mid_terms = get_terms([
-        'taxonomy' => 'vung_mien_tour',
-        'parent' => $parent_term->term_id,
-        'hide_empty' => false,
-    ]);
-
-    $final_terms = [];
-    foreach ($mid_terms as $mid) {
-        $sub_terms = get_terms([
-            'taxonomy' => 'vung_mien_tour',
-            'parent' => $mid->term_id,
-            'hide_empty' => false,
-        ]);
-        $final_terms = array_merge($final_terms, $sub_terms);
-    }
-
-    if (empty($final_terms)) return 'Không có dữ liệu.';
-
-    // Sắp xếp theo số lượng bài viết (count) giảm dần
-    usort($final_terms, function($a, $b) {
-        return $b->count - $a->count;
-    });
-
-    // Lấy đúng số lượng limit (ví dụ 8)
-    $final_terms = array_slice($final_terms, 0, $atts['limit']);
-
-    // Style hiển thị
-    $style = $atts['style'];
-
-    // Bắt đầu HTML
-    echo '<div class="vungmien-list" style="display: flex; flex-wrap: nowrap; gap: 16px; justify-content: center; overflow-x: auto;">';
-
-    foreach ($final_terms as $term) {
-        $thumbnail = get_field('thumbnail', $term);
-        $count = $term->count;
-        $link = get_term_link($term);
-
-        if ($style === 'circle') {
-            echo '
-            <a href="' . esc_url($link) . '" style="text-align:center; width:100px; flex: 0 0 auto; text-decoration: none; color:inherit;">
-              <div style="width: 110px; height: 110px; border-radius: 20%; overflow: hidden; margin: auto;">
-                <img src="' . esc_url($thumbnail) . '" style="width:100%; height:100%; object-fit:cover;">
-              </div>
-              <strong style="font-size: 14px; display: block; margin-top: 5px;">' . esc_html($term->name) . '</strong>
-              <span style="font-size: 12px; color:#888;">' . $count . ' tour</span>
-            </a>';
-        }
-
-        // Các style khác nếu dùng tiếp
-        elseif ($style === 'rectangle' || $style === 'image-overlay') {
-            // Không chỉnh lại ở đây vì bạn không dùng cho nước ngoài
-        }
-    }
-
-    echo '</div>';
-    return ob_get_clean();
-}
-add_shortcode('vungmien_leaf', 'render_vung_mien_leaf_terms');
+  <div class="review-item">
+    <div class="review-score-small">9.2</div>
+    <div class="review-text">
+      <p class="author">Tuyệt vời - Thu Huyền</p>
+      <p>17/12/2024</p>
+      <p>
+        Gia đình mình vừa có một chuyến du lịch tuyệt vời. Mình chọn tour này vì lịch trình đi qua những địa điểm rất thú vị mà cả nhà đều yêu thích.
+        <span class="extra hidden">Đặc biệt, đồ ăn trong chuyến đi rất hợp khẩu vị của gia đình mình, ai cũng khen ngon. Khi đến Vạn Lý Trường Thành, bố mẹ mình thật sự vui mừng và hào hứng. Nếu có cơ hội chắc chắn mình sẽ đi lại tour này.</span>
+        <span class="toggle-text">Xem thêm »</span>
+      </p>
+      <div class="review-images">
+        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
+        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
+      </div>
+    </div>
+  </div>
+  <div class="review-item">
+    <div class="review-score-small">9.2</div>
+    <div class="review-text">
+      <p class="author">Tuyệt vời - Thu Huyền</p>
+      <p>17/12/2024</p>
+      <p>
+        Gia đình mình vừa có một chuyến du lịch tuyệt vời. Mình chọn tour này vì lịch trình đi qua những địa điểm rất thú vị mà cả nhà đều yêu thích.
+        <span class="extra hidden">Đặc biệt, đồ ăn trong chuyến đi rất hợp khẩu vị của gia đình mình, ai cũng khen ngon. Khi đến Vạn Lý Trường Thành, bố mẹ mình thật sự vui mừng và hào hứng. Nếu có cơ hội chắc chắn mình sẽ đi lại tour này.</span>
+        <span class="toggle-text">Xem thêm »</span>
+      </p>
+      <div class="review-images">
+        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
+        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
+      </div>
+    </div>
+  </div>
+  <div class="review-item">
+    <div class="review-score-small">9.2</div>
+    <div class="review-text">
+      <p class="author">Tuyệt vời - Thu Huyền</p>
+      <p>17/12/2024</p>
+      <p>
+        Gia đình mình vừa có một chuyến du lịch tuyệt vời. Mình chọn tour này vì lịch trình đi qua những địa điểm rất thú vị mà cả nhà đều yêu thích.
+        <span class="extra hidden">Đặc biệt, đồ ăn trong chuyến đi rất hợp khẩu vị của gia đình mình, ai cũng khen ngon. Khi đến Vạn Lý Trường Thành, bố mẹ mình thật sự vui mừng và hào hứng. Nếu có cơ hội chắc chắn mình sẽ đi lại tour này.</span>
+        <span class="toggle-text">Xem thêm »</span>
+      </p>
+      <div class="review-images">
+        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
+        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
+      </div>
+    </div>
+  </div>
+  <!-- Thêm các đánh giá khác tương tự -->
+</section>
