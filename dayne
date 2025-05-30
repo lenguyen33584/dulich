@@ -1,61 +1,70 @@
-<section id="danhgia">
-  <h2>📌 Đánh giá</h2>
+<div class = "container"> 
+<?php if (have_rows('bang_gia')): ?>
+<section id="bang-gia-tour">
+  <h2>📅 Bảng giá tour</h2>
 
-  <div class="review-summary">
-    <div class="review-score">9.1</div>
-    <div class="review-details">
-      <p><strong>Tuyệt vời</strong></p>
-      <p>2 đánh giá</p>
-    </div>
+  <?php
+    // Lấy danh sách tháng
+    $months = [];
+    $rows = get_field('bang_gia'); // lấy trước rồi dùng foreach
+    foreach ($rows as $row) {
+      $ngay = $row['ngay_khoi'];
+      if ($ngay) {
+        $month_key = date('Y-m', strtotime($ngay));
+        $months[$month_key] = 'Tháng ' . (int)date('m', strtotime($ngay));
+      }
+    }
+  ?>
+
+  <div class="month-tabs">
+    <button class="tab-btn active" data-month="all">Tất cả</button>
+    <?php foreach ($months as $key => $label): ?>
+      <button class="tab-btn" data-month="<?php echo esc_attr($key); ?>"><?php echo esc_html($label); ?></button>
+    <?php endforeach; ?>
   </div>
 
-  <div class="review-item">
-    <div class="review-score-small">9.2</div>
-    <div class="review-text">
-      <p class="author">Tuyệt vời - Thu Huyền</p>
-      <p>17/12/2024</p>
-      <p>
-        Gia đình mình vừa có một chuyến du lịch tuyệt vời. Mình chọn tour này vì lịch trình đi qua những địa điểm rất thú vị mà cả nhà đều yêu thích.
-        <span class="extra hidden">Đặc biệt, đồ ăn trong chuyến đi rất hợp khẩu vị của gia đình mình, ai cũng khen ngon. Khi đến Vạn Lý Trường Thành, bố mẹ mình thật sự vui mừng và hào hứng. Nếu có cơ hội chắc chắn mình sẽ đi lại tour này.</span>
-        <span class="toggle-text">Xem thêm »</span>
-      </p>
-      <div class="review-images">
-        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
-        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
-      </div>
-    </div>
+  <div class="table-wrapper">
+    <table class="price-table">
+      <thead>
+        <tr>
+          <th>Ngày khởi hành</th>
+          <th>Hạng tour</th>
+          <th>Giá tour</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($rows as $row): 
+          $ngay = $row['ngay_khoi'];
+          $hang = $row['hang_tour'];
+          $gia = $row['gia_tour'];
+          $con_cho = $row['con_cho'];
+          $thang = $ngay ? date('Y-m', strtotime($ngay)) : '';
+        ?>
+        <tr data-month="<?php echo esc_attr($thang); ?>">
+          <td>
+            <?php echo $ngay ? date('Y-m-d', strtotime($ngay)) : ''; ?><br>
+            <span class="<?php echo ($con_cho === 'con') ? 'available' : 'unavailable'; ?>">
+              <?php echo ($con_cho === 'Còn chỗ') ? 'Còn chỗ' : 'Kín chỗ'; ?>
+            </span>
+          </td>
+          <td><?php echo esc_html($hang); ?></td>
+          <td>
+            <strong><?php echo is_numeric($gia) ? number_format($gia, 0, ',', '.') . 'đ' : 'Liên hệ'; ?></strong><br>
+            <small>+ <?php echo is_numeric($gia) ? number_format($gia * 0.01, 0, ',', '.') . ' điểm' : ''; ?></small>
+          </td>
+          <td>
+            <?php if ($con_cho === 'Còn chỗ'): ?>
+              <a href="/thanh-toan?price=<?php echo esc_attr($gia); ?>" class="btn-mua-ngay">Giữ chỗ ngay</a>
+            <?php else: ?>
+              <a href="#yeu-cau" class="btn-yeu-cau">Gửi yêu cầu</a>
+            <?php endif; ?>
+          </td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
   </div>
-  <div class="review-item">
-    <div class="review-score-small">9.2</div>
-    <div class="review-text">
-      <p class="author">Tuyệt vời - Thu Huyền</p>
-      <p>17/12/2024</p>
-      <p>
-        Gia đình mình vừa có một chuyến du lịch tuyệt vời. Mình chọn tour này vì lịch trình đi qua những địa điểm rất thú vị mà cả nhà đều yêu thích.
-        <span class="extra hidden">Đặc biệt, đồ ăn trong chuyến đi rất hợp khẩu vị của gia đình mình, ai cũng khen ngon. Khi đến Vạn Lý Trường Thành, bố mẹ mình thật sự vui mừng và hào hứng. Nếu có cơ hội chắc chắn mình sẽ đi lại tour này.</span>
-        <span class="toggle-text">Xem thêm »</span>
-      </p>
-      <div class="review-images">
-        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
-        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
-      </div>
-    </div>
-  </div>
-  <div class="review-item">
-    <div class="review-score-small">9.2</div>
-    <div class="review-text">
-      <p class="author">Tuyệt vời - Thu Huyền</p>
-      <p>17/12/2024</p>
-      <p>
-        Gia đình mình vừa có một chuyến du lịch tuyệt vời. Mình chọn tour này vì lịch trình đi qua những địa điểm rất thú vị mà cả nhà đều yêu thích.
-        <span class="extra hidden">Đặc biệt, đồ ăn trong chuyến đi rất hợp khẩu vị của gia đình mình, ai cũng khen ngon. Khi đến Vạn Lý Trường Thành, bố mẹ mình thật sự vui mừng và hào hứng. Nếu có cơ hội chắc chắn mình sẽ đi lại tour này.</span>
-        <span class="toggle-text">Xem thêm »</span>
-      </p>
-      <div class="review-images">
-        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
-        <img src="https://via.placeholder.com/100x70" alt="Ảnh đánh giá">
-      </div>
-    </div>
-  </div>
-  <!-- Thêm các đánh giá khác tương tự -->
 </section>
+<?php endif; ?>
+</div>
