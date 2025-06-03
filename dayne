@@ -14,33 +14,39 @@ $dia_chi = get_field('dia_chi_1', $post_id);
 ?>
 <div class ="container">
 <section class="hotel-top-header">
-  <div class="hotel-top-grid">
-    <div class="hotel-featured-img">
-      <?php if (has_post_thumbnail()) : ?>
-        <?php the_post_thumbnail('full'); ?>
-      <?php endif; ?>
-    </div>
 
-    <div class="hotel-info-box">
-      <h1><?php the_title(); ?></h1>
-      <div style="font-size:14px;margin-bottom:0;">
-        <strong style="color:green;font-size:18px;">
-          <?php echo $diem; ?>
-        </strong>
-        <span style="margin-left:8px;">Tuyệt vời - <?php echo $so_danh_gia; ?> đánh giá</span>
-      </div>
-      <div style="color:#555;font-size:14px;margin:0;">
-        <?php echo '📍🗺️ '.$dia_chi; ?>
-      </div>
-      <div style="color:#e53935;font-size:20px;font-weight:bold;margin:0;">
-        <?php echo number_format($gia, 0, ',', '.'); ?>đ
-      </div>
-
-      <?php if ($gia): ?>
-        <a href="<?= site_url('/thanh-toan?price=' . intval($gia)) ?>" class="hotel-request-btn">Thanh toán</a>
-      <?php endif; ?>
+<div class="hotel-top-box">
+  <div class="hotel-featured-gallery"> 
+    <?php 
+    $gallery = get_field('anh_dai_dien');
+    if ($gallery): ?>
+        <div class="hotel-gallery-slider">
+        <?php foreach ($gallery as $image): ?>
+            <div class="hotel-gallery-slide">
+            <img src="<?php echo esc_url($image['url']); ?>" alt="<?php echo esc_attr($image['alt']); ?>">
+            </div>
+        <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+   </div>
+  
+  <div class="hotel-info-box">
+    <h1><?php the_title(); ?></h1>
+    <div style="font-size:14px;margin-bottom:0;">
+      <strong style="color:green;font-size:18px;"><?php echo $diem; ?></strong>
+      <span style="margin-left:8px;">Tuyệt vời - <?php echo $so_danh_gia; ?> đánh giá</span>
     </div>
+    <div style="color:#555;font-size:14px;margin:0;">
+      <?php echo '📍🗺️ '.$dia_chi; ?>
+    </div>
+    <div style="color:#e53935;font-size:20px;font-weight:bold;margin:0;">
+      <?php echo number_format($gia, 0, ',', '.'); ?>đ
+    </div>
+    <?php if ($gia): ?>
+      <a href="<?= site_url('/thanh-toan?price=' . intval($gia)) ?>" class="hotel-request-btn">Thanh toán</a>
+    <?php endif; ?>
   </div>
+</div>
 </section>
 
   <!-- Tabs chuyển mục -->
