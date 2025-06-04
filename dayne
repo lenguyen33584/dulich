@@ -1,77 +1,37 @@
-<section class="hotel-rooms-section">
-  <div class="hotel-rooms-container">
-    <?php if( have_rows('loai_phong') ): ?>
-      <?php while( have_rows('loai_phong') ): the_row(); 
-        $ten_phong = get_sub_field('ten_phong');
-        $anh_phong = get_sub_field('anh_phong');
-        $dien_tich = get_sub_field('dien_tich_phong');
-        $so_nguoi = get_sub_field('so_nguoi');
-        $huong_phong = get_sub_field('huong_phong');
-        $so_giuong = get_sub_field('so_giuong');
-        $vat = get_sub_field('vat');
-        $bua_an = get_sub_field('bua_an');
-        $gia = get_sub_field('gia_tour');
+.hotel-top-box {
+  margin-bottom: 30px;
+}
+.hotel-featured-gallery {
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
 
-      ?>
-      <div class="room-card">
-        <?php 
-        $anh_phong = get_sub_field('anh_phong');
-        if ($anh_phong && is_array($anh_phong)) : 
-            $ten_phong_slug = 'phong-' . sanitize_title($ten_phong);
-        ?>
-        <div class="room-image">
-            <?php foreach ($anh_phong as $index => $anh_url): ?>
-            <a href="<?php echo esc_url($anh_url); ?>"
-                data-fancybox="<?php echo esc_attr($ten_phong_slug); ?>"
-                <?php if ($index !== 0): ?> style="display:none;"<?php endif; ?>>
-                <?php if ($index === 0): ?>
-                <img src="<?php echo esc_url($anh_url); ?>" alt="<?php echo esc_attr($ten_phong); ?>">
-                <?php endif; ?>
-            </a>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
+.hotel-gallery-slider {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 12px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
 
+.hotel-gallery-slide {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+  scroll-snap-align: start;
+}
 
-
-        <div class="room-info">
-          <h3><?php echo esc_html($ten_phong); ?></h3>
-          <div class="room-info-grid">
-            <div><strong>Diện tích:</strong> <?php echo esc_html($dien_tich); ?>m²</div>
-            <div><strong>Sức chứa:</strong> <?php echo esc_html($so_nguoi); ?></div>
-            <div><strong>Hướng:</strong> <?php echo esc_html($huong_phong); ?></div>
-            <div><strong>Giường:</strong> <?php echo esc_html($so_giuong); ?></div>
-          </div>
-          <div class="room-sub-info">
-            <div><strong>✔️ ĐÃ </strong>bao gồm thuế VAT và phí dịch vụ.</div>
-            <div><strong>✔️ ĐÃ </strong>bao gồm ăn sáng.</div>
-          </div>
-          <a href="/thanh-toan?price=<?php echo $gia; ?>" class="room-price-box">
-            <?php echo number_format($gia, 0, ',', '.'); ?>đ
-          </a>
-          <a href="/thanh-toan?price=<?php echo $gia; ?>" class="room-price-box">
-          Thanh toán ngay
-          </a>
-        </div>
-      </div>
-      <?php endwhile; ?>
-    <?php endif; ?>
-  </div>
-</section>
-<!-- TẢI FANCYBOX VÀ KHỞI TẠO -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Đợi 100ms để chắc chắn Fancybox đã load
-    setTimeout(function () {
-      if (typeof Fancybox !== 'undefined') {
-        Fancybox.bind("[data-fancybox]", {});
-        console.log("✅ Fancybox đã được bind");
-      } else {
-        console.error("❌ Fancybox chưa được load!");
-      }
-    }, 100);
-  });
-</script>
+.hotel-gallery-slide img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+}
+.hotel-info-box {
+  margin-top: 20px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 10px;
+}
