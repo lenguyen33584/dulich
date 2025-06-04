@@ -13,6 +13,10 @@ $noi_bat = get_field('noi_bat', $post_id);
 $dia_chi = get_field('dia_chi_1', $post_id);
 ?>
 <div class ="container">
+<div class = "custom-container" style="max-width:1140px;margin:auto;display:flex;">
+<?php if (function_exists('custom_breadcrumb')) {
+    custom_breadcrumb();
+}?></div>
 <section class="hotel-top-header">
 
 <div class="hotel-top-box">
@@ -20,12 +24,17 @@ $dia_chi = get_field('dia_chi_1', $post_id);
     <?php 
     $gallery = get_field('anh_dai_dien');
     if ($gallery && is_array($gallery)) : ?>
-        <div class="hotel-gallery-slider">
-        <?php foreach ($gallery as $image_url): ?>
-            <div class="hotel-gallery-slide">
-            <img src="<?php echo esc_url($image_url); ?>" alt="Ảnh khách sạn">
+        <div class="swiper hotel-gallery-slider">
+            <div class="swiper-wrapper">
+                <?php foreach ($gallery as $image_url): ?>
+                <div class="swiper-slide">
+                    <img src="<?php echo esc_url($image_url); ?>" alt="Ảnh khách sạn" />
+                </div>
+                <?php endforeach; ?>
             </div>
-        <?php endforeach; ?>
+            <!-- Nút điều hướng -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
         </div>
     <?php else: ?>
         <p style="color:red;">Chưa có ảnh đại diện.</p>
@@ -55,7 +64,8 @@ $dia_chi = get_field('dia_chi_1', $post_id);
   <ul style="display:flex;list-style:none;padding:0;margin:24px 0;gap:24px;border-bottom:2px solid #eee;">
     <li><a href="#tien-ich">Tiện ích</a></li>
     <li><a href="#noi-bat">Điểm nổi bật</a></li>
-    <li><a href="#noi-dung">Thông tin & Đánh giá</a></li>
+    <li><a href="#hang-phong">Điểm nổi bật</a></li>
+    <li><a href="#noi-dung">Giới thiệu</a></li>
   </ul>
 
   <!-- Tiện ích -->
@@ -85,7 +95,7 @@ $dia_chi = get_field('dia_chi_1', $post_id);
 
   <!-- Nội dung bài viết -->
 <section class="hotel-rooms-section">
-  <div class="hotel-rooms-container">
+  <div id="hang-phong" class="hotel-rooms-container">
     <?php if( have_rows('loai_phong') ): ?>
       <?php while( have_rows('loai_phong') ): the_row(); 
         $ten_phong = get_sub_field('ten_phong');
@@ -111,13 +121,12 @@ $dia_chi = get_field('dia_chi_1', $post_id);
 
           <?php if (!empty($anh_phong)): ?>
             <div class="room-detail-link">
-                <a href="<?php echo esc_url($anh_phong[0]); ?>"
-                data-fancybox="<?php echo esc_attr($ten_phong_slug); ?>">
-                Chi tiết phòng &nbsp;›
+                <a href="javascript:void(0);" class="open-fancybox" data-gallery="<?php echo esc_attr($ten_phong_slug); ?>">
+                    Chi tiết phòng &nbsp;›
                 </a>
 
-                <?php foreach(array_slice($anh_phong, 1) as $anh): ?>
-                <a href="<?php echo esc_url($anh); ?>"
+                <?php foreach ($anh_phong as $anh): ?>
+                    <a href="<?php echo esc_url($anh); ?>"
                     data-fancybox="<?php echo esc_attr($ten_phong_slug); ?>"
                     style="display:none;">
                     </a>
@@ -133,8 +142,8 @@ $dia_chi = get_field('dia_chi_1', $post_id);
           </div>
 
           <div class="room-sub-info">
-            <div><strong>❌ CHƯA </strong>bao gồm thuế VAT và phí dịch vụ.</div>
-            <div><strong>❌ CHƯA </strong>bao gồm ăn sáng.</div>
+            <div><strong>✔️ ĐÃ </strong>bao gồm thuế VAT và phí dịch vụ.</div>
+            <div><strong>✔️ ĐÃ </strong>bao gồm ăn sáng.</div>
           </div>
 
           <a href="/thanh-toan?price=<?php echo $gia; ?>" class="room-price-box">
@@ -146,66 +155,142 @@ $dia_chi = get_field('dia_chi_1', $post_id);
       <?php endwhile; ?>
     <?php endif; ?>
   </div>
+  <div class="hotel-default-policy">
+
+  <h3><strong>Quy định nhận & trả phòng</strong></h3>
+  <p><strong>Thời gian nhận phòng:</strong> 14:00</p>
+  <p><strong>Thời gian trả phòng:</strong> 12:00</p>
+
+  <hr>
+
+  <p><strong>Quy định nhận phòng:</strong></p>
+  <ul>
+    <li>CCCD hoặc passport.</li>
+    <li>Phiếu xác nhận đặt phòng của hệ thống.</li>
+  </ul>
+  <p style="color: red;"><strong>*Lưu ý:</strong><br>
+    Theo quy định của pháp luật Việt Nam, khi 1 khách nước ngoài + 1 khách Việt Nam ở chung phòng thì yêu cầu phải có giấy đăng ký kết hôn.
+  </p>
+
+  <hr>
+
+  <h3><strong>Quy định hủy/đổi đặt phòng</strong></h3>
+  <ul>
+    <li>Phí hủy/đổi = phí hủy của khách sạn + phí xử lý giao dịch.</li>
+    <li><strong>Phí hủy/đổi của khách sạn được quy định như sau:</strong></li>
+    <ul>
+      <li>Không hoàn phòng, nhưng được phép đổi đơn đặt phòng.</li>
+    </ul>
+    <li><strong>Phí xử lý giao dịch:</strong></li>
+    <ul>
+      <li>Dưới 3 triệu: 2% tổng giá trị (tối thiểu 30.000đ)</li>
+      <li>Trên 3 triệu: 1.5% tổng giá trị</li>
+    </ul>
+  </ul>
+
+  <hr>
+
+  <h3><strong>Trẻ em và giường phụ</strong></h3>
+  <ul>
+    <li><strong>Em bé (dưới 5 tuổi):</strong> Miễn phí nếu ngủ cùng bố mẹ.</li>
+    <li><strong>Trẻ em (5–10 tuổi):</strong> Thu theo quy định khách sạn.</li>
+  </ul>
+
+</div>
 </section>
+
 
 <!-- Fancybox CSS & JS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(function () {
-      if (typeof Fancybox !== 'undefined') {
-        Fancybox.bind("[data-fancybox]", {});
-        console.log("✅ Fancybox đã được bind");
-      } else {
-        console.error("❌ Fancybox chưa được load!");
-      }
-    }, 100);
+document.addEventListener("DOMContentLoaded", function () {
+  new Swiper('.hotel-gallery-slider', {
+    loop: true,
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+    slidesPerView: 1,
+    spaceBetween: 10,
   });
+});
 </script>
-            <div><strong>✔️ ĐÃ </strong>bao gồm thuế VAT và phí dịch vụ.</div>
-            <div><strong>✔️ ĐÃ </strong>bao gồm ăn sáng.</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const buttons = document.querySelectorAll(".open-fancybox");
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      const galleryName = btn.getAttribute("data-gallery");
+      const group = document.querySelectorAll('[data-fancybox="' + galleryName + '"]');
+
+      if (group.length > 0 && typeof Fancybox !== 'undefined') {
+        Fancybox.show(
+          Array.from(group).map(link => ({
+            src: link.getAttribute("href"),
+            type: "image"
+          })),
+          {
+            groupAll: true
+          }
+        );
+      }
+    });
+  });
+});
+</script>
+
 <style>
-.hotel-top-box {
-  margin-bottom: 30px;
+.hotel-default-policy {
+  font-size: 15px;
+  line-height: 1.7;
+  margin-top: 40px;
+}
+
+.hotel-default-policy hr {
+  border: none;
+  border-top: 1px dashed #ccc;
+  margin: 25px 0;
+}
+
+.hotel-default-policy h3 {
+  font-size: 17px;
+  margin-top: 20px;
+}
+
+.hotel-default-policy ul {
+  margin-left: 20px;
+  padding-left: 0;
 }
 .hotel-featured-gallery {
   width: 100%;
   overflow: hidden;
-  margin-bottom: 20px;
 }
 
 .hotel-gallery-slider {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  gap: 12px;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
-.hotel-gallery-slide {
-  flex-shrink: 0;
-  width: 100%;
-  max-width: 100%;
-  scroll-snap-align: start;
-}
-
-.hotel-gallery-slide img {
   width: 100%;
   height: auto;
-  border-radius: 12px;
+  position: relative;
+}
+.hotel-gallery-slider .swiper-slide img {
+  width: 100%;
+  height: auto;
   object-fit: cover;
 }
 .hotel-info-box {
-  margin-top: 20px;
   padding: 10px;
   background: #fff;
   border-radius: 10px;
 }
 .container {
-  max-width: 1200px;
+  max-width: 1140px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 16px;
@@ -232,9 +317,8 @@ $dia_chi = get_field('dia_chi_1', $post_id);
 }
 .hotel-top-header {
   background: #fff;
-  padding: 20px;
   border-radius: 12px;
-  margin-bottom: 30px;
+
 }
 
 .hotel-top-grid {
@@ -246,6 +330,7 @@ $dia_chi = get_field('dia_chi_1', $post_id);
 .hotel-featured-img {
   flex: 0 0 55%;
   max-width: 55%;
+  
 }
 
 .hotel-featured-img img {
@@ -368,11 +453,8 @@ $dia_chi = get_field('dia_chi_1', $post_id);
   }
 }
 </style> 
-  <div id="noi-dung" style="margin-top:40px;">
-    <h2>Thông tin khách sạn</h2>
-    <?php the_content(); ?>
 
-<div style="margin-top: 40px;">
+<div id = "danh-gia" style="margin-top: 40px;">
       <h2>Đánh giá của Khách hàng</h2>
       <div style="font-size: 18px; font-weight: bold; color: green;">9.2 <span style="color:#444; font-size:14px;">Tuyệt vời - 62 đánh giá</span></div>
       <div style="margin: 12px 0 20px;"><a href="#" style="color:#e1703a;">Điểm chi tiết &raquo;</a></div>
@@ -399,7 +481,108 @@ $dia_chi = get_field('dia_chi_1', $post_id);
       }
       ?>
     </div>
-  </div>
+<?php while (have_posts()) : the_post(); ?>
+  <?php
+    $content = apply_filters('the_content', get_the_content());
+    preg_match_all('/<h([2-4])[^>]*>(.*?)<\/h[2-4]>/', $content, $matches, PREG_SET_ORDER);
+
+    foreach ($matches as $index => $heading) {
+      $level = $heading[1];
+      $title = strip_tags($heading[2]);
+      $slug = 'toc-' . $index;
+      $content = preg_replace(
+        '/' . preg_quote($heading[0], '/') . '/',
+        '<h' . $level . ' id="' . $slug . '">' . $heading[2] . '</h' . $level . '>',
+        $content,
+        1
+      );
+      $toc_items[] = [
+        'slug' => $slug,
+        'title' => $title,
+        'level' => $level
+      ];
+    }
+  ?>
+  <section class="hotel-article-section">
+    <div class="container">
+      <div class="hotel-article-wrapper">
+        <aside class="hotel-article-sidebar">
+          <div class="hotel-toc">
+            <h3>Thông tin chi tiết</h3>
+            <ul>
+              <?php foreach ($toc_items as $item): ?>
+                <li class="toc-level-<?php echo $item['level']; ?>">
+                  <a href="#<?php echo esc_attr($item['slug']); ?>"><?php echo esc_html($item['title']); ?></a>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          </div>
+        </aside>
+        <article class="hotel-article-content">
+          <?php echo $content; ?>
+        </article>
+      </div>
+    </div>
+
+  <style>
+    .hotel-article-section {
+    margin-top: 40px;
+    padding: 30px 0;
+    background-color: #fff;
+    }
+
+    .hotel-article-wrapper {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    }
+
+    .hotel-article-sidebar {
+    width: 25%;
+    border-right: 1px solid #eee;
+    padding-right: 20px;
+    font-size: 15px;
+    position: sticky;
+    top: 100px;
+    max-height: 80vh;
+    overflow-y: auto;
+    }
+
+    .hotel-toc h3 {
+    font-weight: bold;
+    margin-bottom: 15px;
+    }
+
+    .hotel-toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    }
+
+    .hotel-toc li {
+    margin-bottom: 8px;
+    }
+
+    .toc-level-2 a {
+    font-weight: 600;
+    color: #000;
+    }
+
+    .toc-level-3 a,
+    .toc-level-4 a {
+    padding-left: 10px;
+    color: #666;
+    font-size: 14px;
+    }
+
+    .hotel-article-content {
+    width: 75%;
+    font-size: 16px;
+    line-height: 1.8;
+    }
+  </style>
+  </section>
+<?php endwhile; ?>
 </div>
 
 <?php get_footer(); ?>
