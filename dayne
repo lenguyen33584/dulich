@@ -1,275 +1,104 @@
-//form thanh toán
-function form_thanh_toan_shortcode() {
-    ob_start();
-    $gia_tour = isset($_GET['price']) ? intval($_GET['price']) : 0;
-    ?>
-    <style>
-    .form-tour-wrapper {
-        max-width: 800px;
-        margin: auto;
-        font-family: Arial, sans-serif;
-    }
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-    .form-grid label {
-        font-weight: 500;
-        font-size: 14px;
-        display: flex;
-        flex-direction: column;
-    }
-    .form-grid input,
-    .form-grid select,
-    .form-grid textarea {
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        margin-top: 5px;
-        font-size: 14px;
-    }
-    .form-grid textarea {
-        resize: vertical;
-    }
-    .form-grid .full-row {
-        grid-column: 1 / -1;
-    }
-    .form-submit {
-        text-align: center;
-        margin-top: 20px;
-    }
-    .form-submit button {
-        padding: 12px 40px;
-        background: #660000;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        cursor: pointer;
-    }
-    .highlight-option {
-        background: #fff8e1;
-        padding: 10px;
-        border: 2px solid #ffa000;
-        border-radius: 6px;
-    }
-    .price-display {
-        font-weight: bold;
-        font-size: 18px;
-        margin-top: 10px;
-        color: #333;
-    }
-    /* Chỉnh 2 dòng giá gần nhau hơn và đẹp hơn */
-    .price-display {
-        font-weight: bold;
-        font-size: 16px;
-        color: #333;
-    
-        display: flex;
-        align-items: baseline;
-    }
+<section class="hotel-rooms-section">
+  <div id="hang-phong" class="hotel-rooms-container">
+    <?php if( have_rows('loai_phong') ): ?>
+      <?php while( have_rows('loai_phong') ): the_row(); 
+        $ten_phong = get_sub_field('ten_phong');
+        $anh_phong_raw = get_sub_field('anh_phong_1'); // textarea: 1 ảnh mỗi dòng
+        $anh_phong = array_filter(array_map('trim', explode("\n", $anh_phong_raw)));
+        $dien_tich = get_sub_field('dien_tich_phong');
+        $so_nguoi = get_sub_field('so_nguoi');
+        $huong_phong = get_sub_field('huong_phong');
+        $so_giuong = get_sub_field('so_giuong');
+        $vat = get_sub_field('vat');
+        $bua_an = get_sub_field('bua_an');
+        $gia = get_sub_field('gia_tour');
+        $ten_phong_slug = 'phong-' . sanitize_title($ten_phong);
+      ?>
+      <div class="room-card">
+        <div class="room-image">
+          <?php if ($anh_phong && is_array($anh_phong)): ?>
+            <img src="<?php echo esc_url($anh_phong[0]); ?>" alt="<?php echo esc_attr($ten_phong); ?>">
+          <?php endif; ?>
+        </div>
 
-    .price-bf {
-        font-size: 16px;
-        color: #aaa!important;
-        text-decoration: line-through;
-        font-style: italic;
-        font-weight: normal;
-        opacity: 0.7!important;
-        margin-bottom: -8px;
-    }
-    .rules-note {
-    background: #f9f9f9;
-    padding: 15px;
-    border-left: 4px solid #660000;
-    margin-bottom: 20px;
-    font-size: 14px;
-    line-height: 1.5;
-}
-    </style>
+        <div class="room-info">
+          <h3><?php echo esc_html($ten_phong); ?></h3>
 
-    <div class="form-tour-wrapper">
-        <form id="payment-form">
-            <div class="rules-note">
-                    <strong>Quy định huỷ/đổi dịch vụ:</strong><br>
-                    • Huỷ/đổi trước ngày khởi hành <strong>tối thiểu 14 ngày</strong>: Hoàn 100% giá trị thanh toán.<br>
-                    • Huỷ/đổi trước ngày khởi hành <strong>dưới 14 ngày</strong>: Khấu trừ 70% nếu đổi sang tour khác hoặc 50% nếu huỷ hoàn toàn.<br>
-                    • Thời gian hoàn tiền tối đa <strong>3 ngày làm việc</strong> kể từ thời điểm tiếp nhận yêu cầu.
+          <?php if (!empty($anh_phong)): ?>
+            <div class="room-detail-link">
+                <a href="javascript:void(0);" class="open-fancybox" data-gallery="<?php echo esc_attr($ten_phong_slug); ?>">
+                    Chi tiết phòng &nbsp;›
+                </a>
+
+                <?php foreach ($anh_phong as $anh): ?>
+                    <a href="<?php echo esc_url($anh); ?>"
+                    data-fancybox="<?php echo esc_attr($ten_phong_slug); ?>"
+                    style="display:none;">
+                    </a>
+                <?php endforeach; ?>
             </div>
-            <div class="form-grid">
-                <p class="full-row price-bf">
-                    Giá niêm yết: <span id="listed-price"><?= number_format($gia_tour, 0, ',', '.') ?> đ</span>
-                </p>
-                <p class="full-row price-display">
-                    Giá cần thanh toán: <span id="final-price"><?= number_format($gia_tour, 0, ',', '.') ?> đ</span>
-                </p>
+            <?php endif; ?>
 
-                <label>Ngày khởi hành:
-                    <input type="date" name="ngay_khoi_hanh" onchange="updatePrice()">
-                </label>
+          <div class="room-info-grid">
+            <div><strong>Diện tích:</strong> <?php echo esc_html($dien_tich); ?>m²</div>
+            <div><strong>Sức chứa:</strong> <?php echo esc_html($so_nguoi); ?></div>
+            <div><strong>Hướng:</strong> <?php echo esc_html($huong_phong); ?></div>
+            <div><strong>Giường:</strong> <?php echo esc_html($so_giuong); ?></div>
+          </div>
 
-                <label>Điểm khởi hành:
-                    <select name="diem_khoi_hanh" onchange="updatePrice()">
-                        <option value="Hà Nội">Hà Nội</option>
-                        <option value="TP HCM">TP HCM</option>
-                        <option value="Đà Nẵng">Đà Nẵng</option>
-                    </select>
-                </label>
-                <div class="full-row" style="display:grid; grid-template-columns:repeat(3,1fr);gap:15px;">
-                    <label>Người lớn:
-                        <select name="nguoi_lon" id="nguoi_lon" onchange="updatePrice()">
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                        </select>
-                    </label>
+          <div class="room-sub-info">
+            <div><strong>✔️ ĐÃ </strong>bao gồm thuế VAT và phí dịch vụ.</div>
+            <div><strong>✔️ ĐÃ </strong>bao gồm ăn sáng.</div>
+          </div>
 
-                    <label>Trẻ em (2-12):
-                        <select name="tre_em" id="tre_em" onchange="updatePrice()">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </label>
+          <a href="/thanh-toan-2?price=<?php echo $gia; ?>" class="room-price-box">
+            <?php echo number_format($gia, 0, ',', '.'); ?>đ
+          </a>
+          <a href="/thanh-toan-2?price=<?php echo $gia; ?>" class="room-price-box">Thanh toán ngay</a>
+        </div>
+      </div>
+      <?php endwhile; ?>
+    <?php endif; ?>
+  </div>
+  <div class="hotel-default-policy">
+  <h3><strong>Quy định nhận & trả phòng</strong></h3>
+  <p><strong>Thời gian nhận phòng:</strong> 14:00</p>
+  <p><strong>Thời gian trả phòng:</strong> 12:00</p>
 
-                    <label>Em bé (<2):
-                        <select name="em_be" id="em_be" onchange="updatePrice()">
-                            <option value="0">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                        </select>
-                    </label>
-                </div>
-                <label>Quý danh:
-                    <select name="quy_danh">
-                        <option value="Ông">Ông</option>
-                        <option value="Bà">Bà</option>
-                    </select>
-                </label>
+  <hr>
 
-                <label>Họ tên: (*)
-                    <input type="text" id="user-name" placeholder="Họ tên của bạn" required>
-                </label>
+  <p><strong>Quy định nhận phòng:</strong></p>
+  <ul>
+    <li>CCCD hoặc passport.</li>
+    <li>Phiếu xác nhận đặt phòng của hệ thống.</li>
+  </ul>
+  <p style="color: red;"><strong>*Lưu ý:</strong><br>
+    Theo quy định của pháp luật Việt Nam, khi 1 khách nước ngoài + 1 khách Việt Nam ở chung phòng thì yêu cầu phải có giấy đăng ký kết hôn.
+  </p>
 
-                <label>Email: (*)
-                    <input type="email" id="user-email" placeholder="Email" required>
-                </label>
+  <hr>
 
-                <label>Số điện thoại:
-                    <input type="tel" id="sdt" placeholder="SĐT">
-                </label>
+  <h3><strong>Quy định hủy/đổi đặt phòng</strong></h3>
+  <ul>
+    <li>Phí hủy/đổi = phí hủy của khách sạn + phí xử lý giao dịch.</li>
+    <li><strong>Phí hủy/đổi của khách sạn được quy định như sau:</strong></li>
+    <ul>
+      <li>Không hoàn phòng, nhưng được phép đổi đơn đặt phòng.</li>
+    </ul>
+    <li><strong>Phí xử lý giao dịch:</strong></li>
+    <ul>
+      <li>Dưới 3 triệu: 2% tổng giá trị (tối thiểu 30.000đ)</li>
+      <li>Trên 3 triệu: 1.5% tổng giá trị</li>
+    </ul>
+  </ul>
 
-                <label class="full-row highlight-option">
-                    Hình thức thanh toán: (*)
-                    <select id="payment_type" required onchange="updatePrice()" style="margin-top: 5px; padding: 10px;">
-                        <option value="">-- Vui lòng chọn hình thức thanh toán --</option>
-                        <option value="100">Thanh toán toàn bộ (giảm thêm 20%)</option>
-                        <option value="30">Cọc giữ chỗ</option>
-                    </select>
-                </label>
+  <hr>
 
-                <label class="full-row">Yêu cầu đặc biệt:
-                    <textarea name="yeu_cau_dac_biet" rows="3"></textarea>
-                </label>
+  <h3><strong>Trẻ em và giường phụ</strong></h3>
+  <ul>
+    <li><strong>Em bé (dưới 5 tuổi):</strong> Miễn phí nếu ngủ cùng bố mẹ.</li>
+    <li><strong>Trẻ em (5–10 tuổi):</strong> Thu theo quy định khách sạn.</li>
+  </ul>
 
-                <div id="qr-popup" class="full-row" style="text-align:center;"></div>
-            </div>
-
-            <div class="form-submit">
-                <button id="confirm-button" type="button" onclick="submitPayment()">Xác nhận thanh toán</button>
-            </div>
-        </form>
-    </div>
-
-    <script>
-        let basePrice = <?= $gia_tour ?>;
-        let calculatedAmount = basePrice;
-
-        function updatePrice() {
-            const nguoiLon = parseInt(document.getElementById('nguoi_lon').value || 0);
-            const treEm = parseInt(document.getElementById('tre_em').value || 0);
-            const paymentType = parseInt(document.getElementById('payment_type').value || 0);
-
-            const listedPrice = (nguoiLon * basePrice) + (treEm * basePrice * 0.5);
-            let finalPrice = listedPrice;
-
-            if (paymentType === 100) {
-                finalPrice *= 0.8; // Giảm 20%
-            } else if (paymentType === 30) {
-                finalPrice *= 0.3; // Cọc 30%
-            }
-
-            calculatedAmount = Math.round(finalPrice);
-            document.getElementById('final-price').innerText = calculatedAmount.toLocaleString('vi-VN') + ' đ';
-            document.getElementById('listed-price').innerText = Math.round(listedPrice).toLocaleString('vi-VN') + ' đ';
-        }
-
-        function submitPayment() {
-            document.getElementById("confirm-button").disabled = true;
-            const name = document.getElementById('user-name').value.trim();
-            const email = document.getElementById('user-email').value.trim();
-            const qrPopup = document.getElementById("qr-popup");
-
-            if (!name || !email || calculatedAmount === 0) {
-                alert('Vui lòng nhập đủ Họ tên, Email và chọn hình thức thanh toán.');
-                return;
-            }
-
-            qrPopup.innerHTML = `
-                <div style="text-align:center">
-                    <p style="font-weight:bold; color:#cc0000;">Đang lấy mã QR tự động... Vui lòng chờ khoảng 2 phút</p>
-                    <div id="countdown" style="font-size:24px; font-weight:bold; margin:10px;">02:00</div>
-                </div>
-            `;
-            let timer = 120;
-            const interval = setInterval(() => {
-                const minutes = String(Math.floor(timer / 60)).padStart(2, '0');
-                const seconds = String(timer % 60).padStart(2, '0');
-                document.getElementById('countdown').innerText = `${minutes}:${seconds}`;
-                if (--timer < 0) clearInterval(interval);
-            }, 1000);
-
-            const formData = new URLSearchParams();
-            formData.append('price', calculatedAmount);
-
-            fetch("https://resolved-url-tapes-physically.trycloudflare.com/run-bot", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: formData.toString()
-            })
-            .then(res => res.blob())
-            .then(blob => {
-                const url = URL.createObjectURL(blob);
-                qrPopup.innerHTML = `
-                    <div>
-                        <p><strong>Mã QR thanh toán:</strong></p>
-                        <img src="${url}" style="max-width:300px;"><br><br>
-                        <label>Gửi ảnh xác nhận chuyển khoản:
-                            <input type="file" id="upload-proof" accept="image/*">
-                        </label><br>
-                        <button onclick="confirmPayment()">Đã chuyển khoản</button>
-                        <p id="confirm-message" style="margin-top:10px; font-weight:bold;"></p>
-                    </div>
-                `;
-            });
-        }
-
-        function confirmPayment() {
-            const fileInput = document.getElementById('upload-proof');
-            const msg = document.getElementById('confirm-message');
-            if (!fileInput.files.length) {
-                msg.innerText = 'Vui lòng gửi ảnh xác nhận chuyển khoản trước khi xác nhận.';
-                msg.style.color = 'red';
-                return;
-            }
-            msg.style.color = 'green';
-            msg.innerText = 'Quý khách vui lòng kiểm tra email để xác nhận đặt thành công dịch vụ.';
-        }
-
-        window.addEventListener("DOMContentLoaded", updatePrice);
-    </script>
-    <?php
-    return ob_get_clean();
-}
-add_shortcode('form_thanh_toan', 'form_thanh_toan_shortcode');
+</div>
+</section>
