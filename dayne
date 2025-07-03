@@ -1,1 +1,770 @@
-<a href="<?= site_url('/thanh-toan-2?price=' . intval($gia)) ?>" class="hotel-request-btn">Thanh toán</a>
+<?php
+/**
+ * Template for single hotel post type: single-khach_san.php
+ */
+
+get_header();
+$post_id = get_the_ID();
+$gia = get_field('gia_tour', $post_id);
+$diem = get_field('diem_danh_gia', $post_id);
+$so_danh_gia = get_field('so_danh_gia', $post_id);
+$tien_ich = get_field('tien_ich', $post_id);
+$noi_bat = get_field('noi_bat', $post_id);
+$dia_chi = get_field('dia_chi_1', $post_id);
+?>
+
+<div class ="container">
+<div class = "custom-container" style="max-width:1140px;margin:auto;display:flex;">
+<?php if (function_exists('custom_breadcrumb')) {
+    custom_breadcrumb();
+}?></div>
+<section class="hotel-top-header">
+
+<div class="hotel-top-box">
+  <div class="hotel-featured-gallery">
+    <?php
+    $gallery_urls_raw = get_field('anh_dai_dien_link', $post_id);
+    $gallery_urls = array_filter(array_map('trim', explode("\n", $gallery_urls_raw)));
+    ?>
+
+    <?php if (!empty($gallery_urls)): ?>
+    <div class="hotel-featured-gallery">
+        <div class="swiper hotel-gallery-slider">
+            <div class="swiper-wrapper">
+                <?php foreach ($gallery_urls as $image_url): ?>
+                    <div class="swiper-slide">
+                        <img src="<?php echo esc_url($image_url); ?>" alt="Ảnh khách sạn" />
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </div>
+    <?php else: ?>
+        <p style="color:red;">Chưa có ảnh đại diện.</p>
+    <?php endif; ?>
+  </div>
+
+  <div class="hotel-summary-box">
+    <!-- Cột trái: tiêu đề + địa chỉ + tabs -->
+    <div class="hotel-summary-left">
+      <h1><?php the_title(); ?></h1>
+      <div class="hotel-address">📍 <?php echo esc_html($dia_chi); ?></div>
+
+      <!-- Tabs -->
+      <ul class="hotel-tabs">
+        <li><a href="#gioi-thieu">Giới thiệu</a></li>
+        <li><a href="#hang-phong">Hạng phòng</a></li>
+        <li><a href="#noi-bat">Điểm nổi bật</a></li>
+        <li><a href="#tien-ich">Tiện ích</a></li>
+        <li><a href="#danh-gia">Đánh giá</a></li>
+      </ul>
+    </div>
+
+    <!-- Cột phải: ô đánh giá + giá + thanh toán -->
+    <div class="hotel-summary-right">
+      <div class="hotel-info-summary-box">
+        <div class="info-box-top">
+          <div class="info-rating-inline">
+            <div class="score-box"><?php echo esc_html($diem); ?></div>
+            <div class="score-count"><?php echo esc_html($so_danh_gia); ?> đánh giá</div>
+          </div>
+          <div class="info-price">
+            <div class="price-number"><?php echo number_format($gia, 0, ',', '.'); ?>đ</div>
+            <div class="price-point">+ <?php echo number_format(round($gia * 0.01), 0, ',', '.'); ?> điểm</div>
+          </div>
+        </div>
+        <a href="<?= site_url('/thanh-toan-2?price=' . intval($gia) . '&hotel_id=' . get_the_ID()) ?>" class="hotel-request-btn">Thanh toán</a>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+.hotel-featured-gallery .swiper-slide img {
+    width: 100%;
+    height: 350px!important;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.hotel-top-box {
+  margin-top: 20px;
+}
+
+.hotel-summary-box {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  background: #fff;
+  padding-top: 20px;
+  border-radius: 10px;
+}
+
+.hotel-summary-left {
+  flex: 1;
+  min-width: 250px;
+}
+
+.hotel-summary-left h1 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  color: #222;
+}
+
+.hotel-address {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+/* Tabs */
+.hotel-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.hotel-tabs li a {
+  text-decoration: none;
+  padding-top : 6px;
+  font-size: 18px;
+  color: #333;
+  font-weight:bold;
+  border-bottom: 2px solid transparent;
+}
+
+.hotel-tabs li a:hover,
+.hotel-tabs li a.active {
+  color: #660000;
+  border-color: #660000;
+}
+
+/* Cột phải */
+.hotel-summary-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 320px;
+}
+
+/* Ô tổng hợp */
+.hotel-info-summary-box {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-box-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.info-rating-inline {
+  text-align: center;
+  display:flex;
+  gap : 8px;
+}
+
+.score-box {
+  background-color: #4caf50;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  line-height: 36px;
+  text-align: center;
+}
+
+.score-count {
+  font-size: 13px;
+  color: #777;
+  white-space:nowrap;
+}
+
+.info-price {
+  text-align: right;
+}
+
+.price-number {
+  font-size: 18px;
+  font-weight: bold;
+  color: #d32f2f;
+}
+
+.price-point {
+  font-size: 13px;
+  color: #777;
+}
+
+.hotel-request-btn {
+  display: block;
+  width: 100%;
+  background: #e1703a;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  font-weight: bold;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.hotel-request-btn:hover {
+  background: #c75a1e;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .hotel-summary-box {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .hotel-summary-right {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .hotel-info-summary-box {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .hotel-request-btn {
+    width: 100%;
+  }
+
+    .hotel-tabs {
+    display: none;
+  }
+}
+</style>
+</section>
+
+  <!-- Tiện ích -->
+  <div id="tien-ich">
+    <h2 style="font-size: 20px;">Tiện ích khách sạn</h2>
+    <?php if ($tien_ich): ?>
+      <div style="columns:3;-webkit-columns:3;-moz-columns:3;max-height:90px;overflow:hidden;transition: max-height 0.3s ease;" id="list-tien-ich">
+        <ul style="padding-left:20px;">
+        <?php foreach ($tien_ich as $ti): ?>
+          <li><?php echo esc_html($ti); ?></li>
+        <?php endforeach; ?>
+        </ul>
+      </div>
+      <button 
+  onclick="document.getElementById('list-tien-ich').style.maxHeight='none'; this.style.display='none';" 
+  style="margin-top:10px;background:none;color:#e1703a;border:none;cursor:pointer;">
+  Xem thêm
+</button>
+    <?php endif; ?>
+  </div>
+
+  <!-- Điểm nổi bật -->
+  <div id="noi-bat" style="background:#fff5e6;border-left:5px solid #ffc107;padding:16px;margin:24px 0;border-radius:8px;">
+    <h2 style="font-size=20px!important;color:#660000;margin-top:0;">Điểm nổi bật <?php the_title(); ?></h2>
+    <ul style="padding-left:20px;">
+      <?php foreach (explode("\n", $noi_bat) as $line): ?>
+        <li><?php echo esc_html($line); ?></li>
+      <?php endforeach; ?>
+    </ul>
+  </div>
+
+  <!-- Nội dung bài viết -->
+<section class="hotel-rooms-section">
+  <div id="hang-phong" class="hotel-rooms-container">
+    <?php if( have_rows('loai_phong') ): ?>
+      <?php while( have_rows('loai_phong') ): the_row(); 
+        $ten_phong = get_sub_field('ten_phong');
+        $anh_phong_raw = get_sub_field('anh_phong_1'); // textarea: 1 ảnh mỗi dòng
+        $anh_phong = array_filter(array_map('trim', explode("\n", $anh_phong_raw)));
+        $dien_tich = get_sub_field('dien_tich_phong');
+        $so_nguoi = get_sub_field('so_nguoi');
+        $huong_phong = get_sub_field('huong_phong');
+        $so_giuong = get_sub_field('so_giuong');
+        $vat = get_sub_field('vat');
+        $bua_an = get_sub_field('bua_an');
+        $gia = get_sub_field('gia_tour');
+        $ten_phong_slug = 'phong-' . sanitize_title($ten_phong);
+      ?>
+      <div class="room-card">
+        <div class="room-image">
+          <?php if (!empty($anh_phong)): ?>
+            <img src="<?php echo esc_url($anh_phong[0]); ?>" alt="<?php echo esc_attr($ten_phong); ?>">
+          <?php endif; ?>
+        </div>
+
+        <div class="room-info">
+          <h3><?php echo esc_html($ten_phong); ?></h3>
+
+          <?php if (!empty($anh_phong)): ?>
+            <div class="room-detail-link">
+                <a href="javascript:void(0);" class="open-fancybox" data-gallery="<?php echo esc_attr($ten_phong_slug); ?>">
+                    Chi tiết phòng &nbsp;›
+                </a>
+                <?php foreach ($anh_phong as $anh): ?>
+                  <a href="<?php echo esc_url($anh); ?>"
+                     data-fancybox="<?php echo esc_attr($ten_phong_slug); ?>"
+                     style="display:none;">
+                  </a>
+                <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+
+          <div class="room-info-grid">
+            <div><strong>Diện tích:</strong> <?php echo esc_html($dien_tich); ?>m²</div>
+            <div><strong>Sức chứa:</strong> <?php echo esc_html($so_nguoi); ?></div>
+            <div><strong>Hướng:</strong> <?php echo esc_html($huong_phong); ?></div>
+            <div><strong>Giường:</strong> <?php echo esc_html($so_giuong); ?></div>
+          </div>
+
+          <div class="room-sub-info">
+            <div><strong>✔️ ĐÃ </strong>bao gồm thuế VAT và phí dịch vụ.</div>
+            <div><strong>✔️ ĐÃ </strong>bao gồm ăn sáng.</div>
+          </div>
+
+          <a href="<?= site_url('/thanh-toan-2?price=' . intval($gia) . '&hotel_id=' . get_the_ID()) ?>" class="room-price-box">
+            <?php echo number_format($gia, 0, ',', '.'); ?>đ
+          </a>
+          <a href="<?= site_url('/thanh-toan-2?price=' . intval($gia) . '&hotel_id=' . get_the_ID()) ?>" class="room-price-box">Đặt phòng ngay</a>
+        </div>
+      </div>
+      <?php endwhile; ?>
+    <?php endif; ?>
+  </div>
+
+  <div class="hotel-default-policy">
+    <h3><strong>Quy định nhận & trả phòng</strong></h3>
+    <p><strong>Thời gian nhận phòng:</strong> 14:00</p>
+    <p><strong>Thời gian trả phòng:</strong> 12:00</p>
+
+    <hr>
+<p><strong>Quy định nhận phòng:</strong></p>
+    <ul>
+      <li>CCCD hoặc passport.</li>
+      <li>Phiếu xác nhận đặt phòng của hệ thống.</li>
+    </ul>
+    <p style="color: red;"><strong>*Lưu ý:</strong><br>
+      Theo quy định của pháp luật Việt Nam, khi 1 khách nước ngoài + 1 khách Việt Nam ở chung phòng thì yêu cầu phải có giấy đăng ký kết hôn.
+    </p>
+
+    <hr>
+
+    <h3><strong>Quy định hủy/đổi đặt phòng</strong></h3>
+    <ul>
+      <li>Phí hủy/đổi = phí hủy của khách sạn + phí xử lý giao dịch.</li>
+      <li><strong>Phí hủy/đổi của khách sạn được quy định như sau:</strong></li>
+      <ul>
+        <li>Không hoàn phòng, nhưng được phép đổi đơn đặt phòng.</li>
+      </ul>
+      <li><strong>Phí xử lý giao dịch:</strong></li>
+      <ul>
+        <li>Dưới 3 triệu: 2% tổng giá trị (tối thiểu 30.000đ)</li>
+        <li>Trên 3 triệu: 1.5% tổng giá trị</li>
+      </ul>
+    </ul>
+
+    <hr>
+
+    <h3><strong>Trẻ em và giường phụ</strong></h3>
+    <ul>
+      <li><strong>Em bé (dưới 5 tuổi):</strong> Miễn phí nếu ngủ cùng bố mẹ.</li>
+      <li><strong>Trẻ em (5–10 tuổi):</strong> Thu theo quy định khách sạn.</li>
+    </ul>
+  </div>
+</section>
+
+
+<!-- Fancybox CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  new Swiper('.hotel-gallery-slider', {
+    loop: true,
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+    slidesPerView: 1,
+    spaceBetween: 10,
+  });
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const buttons = document.querySelectorAll(".open-fancybox");
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      const galleryName = btn.getAttribute("data-gallery");
+      const group = document.querySelectorAll('[data-fancybox="' + galleryName + '"]');
+
+      if (group.length > 0 && typeof Fancybox !== 'undefined') {
+        Fancybox.show(
+          Array.from(group).map(link => ({
+            src: link.getAttribute("href"),
+            type: "image"
+          })),
+          {
+            groupAll: true
+          }
+        );
+      }
+    });
+  });
+});
+</script>
+
+<style>
+
+.hotel-default-policy hr {
+  border: none;
+  border-top: 1px dashed #ccc;
+  margin: 25px 0;
+}
+
+.hotel-default-policy h3 {
+  font-size: 17px;
+  margin-top: 20px;
+}
+
+.hotel-default-policy ul {
+  margin-left: 20px;
+  padding-left: 0;
+}
+.hotel-featured-gallery {
+  width: 100%;
+  overflow: hidden;
+}
+
+.hotel-gallery-slider {
+  width: 100%;
+  height: auto;
+  position: relative;
+}
+.hotel-gallery-slider .swiper-slide img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+.hotel-info-box {
+  padding: 10px;
+  background: #fff;
+  border-radius: 10px;
+}
+.container {
+  max-width: 1140px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+.hotel-request-btn {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+  border: 2px solid #660000;
+  background: #660000;
+  color: #fff;
+  text-align: center;
+}
+
+.hotel-request-btn:hover {
+  background: #990000;
+  border-color: #990000;
+}
+.hotel-top-header {
+  background: #fff;
+  border-radius: 12px;
+
+}
+
+.hotel-top-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.hotel-featured-img {
+  flex: 0 0 55%;
+  max-width: 55%;
+  
+}
+
+.hotel-featured-img img {
+  width: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.hotel-info-box {
+  flex: 0 0 40%;
+  max-width: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .hotel-top-grid {
+    flex-direction: column;
+  }
+
+  .hotel-featured-img,
+  .hotel-info-box {
+    max-width: 100%;
+    width: 100%;
+    flex: 0 0 100%;
+  }
+
+  .hotel-featured-img img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+  }
+}
+
+.hotel-rooms-section {
+  padding: 30px 15px;
+  background-color: #f9f9f9;
+}
+.hotel-rooms-container {
+  max-width: 1100px;
+  margin: auto;
+}
+.room-card {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 15px;
+  align-items: center;
+}
+.room-image {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.room-image img {
+  width: 200px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.room-info {
+  flex: 1;
+}
+.room-info h3 {
+  margin: 0 0 12px;
+  color: #222;
+  font-size: 20px;
+}
+.room-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px 20px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.room-sub-info {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.room-sub-info div {
+  margin-bottom: 4px;
+}
+.room-price-box {
+  display: inline-block;
+  border: 2px solid #660000;
+  color: #660000;
+  font-weight: bold;
+  font-size: 18px;
+  padding: 6px 14px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+  .room-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  .room-image img {
+    width: 100%;
+    max-width: 100%;
+  }
+  .room-info-grid {
+    grid-template-columns: 1fr 1fr;
+    text-align: left;
+    justify-content: center;
+  }
+  .room-sub-info {
+    text-align: left;
+  }
+  .room-price-box {
+    margin-top: 10px;
+  }
+}
+</style> 
+
+<div id = "danh-gia" style="margin-top: 40px;">
+      <h2 style="font-size: 20px;">Đánh giá của Khách hàng</h2>
+      <div style="font-size: 18px; font-weight: bold; color: green;">9.2 <span style="color:#444; font-size:14px;">Tuyệt vời - 62 đánh giá</span></div>
+      <div style="margin: 12px 0 20px;"><a href="#" style="color:#e1703a;">Điểm chi tiết &raquo;</a></div>
+
+      <?php
+      $danh_gia = [
+        ['name' => 'Khánh An', 'score' => '9.4', 'content' => 'Dịch vụ ở đây rất tốt, nhân viên thân thiện, không gian sạch sẽ. Mình ấn tượng nhất là buffet sáng.'],
+        ['name' => 'Văn Khoa', 'score' => '9.4', 'content' => 'Hồ bơi đẹp và rộng. Phòng ốc hiện đại. Mình sẽ quay lại lần sau.'],
+        ['name' => 'Đức Đạt', 'score' => '9.2', 'content' => 'Gia đình mình đã có kỳ nghỉ tuyệt vời. Trẻ em rất thích khu vui chơi ở đây.'],
+        ['name' => 'Thảo Lan', 'score' => '9.2', 'content' => 'Nhân viên hỗ trợ nhiệt tình, bữa ăn ngon. Vị trí gần trung tâm nên rất tiện đi lại.'],
+        ['name' => 'Minh Huy', 'score' => '9.3', 'content' => 'Cảnh quan đẹp, phòng rộng rãi, view nhìn ra biển cực kỳ chill.'],
+        ['name' => 'Ngọc Hà', 'score' => '9.5', 'content' => 'Đi nghỉ dưỡng cùng bạn bè rất vui. Đặc biệt thích không gian nhà hàng và spa.'],
+        ['name' => 'Lê Dương', 'score' => '9.1', 'content' => 'Dịch vụ chuyên nghiệp, mình đánh giá cao sự chu đáo của nhân viên.'],
+        ['name' => 'Hoàng Tú', 'score' => '9.3', 'content' => 'Bữa sáng đa dạng món, phòng được dọn sạch mỗi ngày.'],
+        ['name' => 'Quỳnh Mai', 'score' => '9.0', 'content' => 'Vị trí tiện lợi, gần các điểm tham quan. Giá cả hợp lý.'],
+        ['name' => 'Anh Khoa', 'score' => '9.2', 'content' => 'Chất lượng tốt so với tầm giá. Rất đáng để trải nghiệm.'],
+      ];
+
+      foreach ($danh_gia as $dg) {
+        echo '<div style="border-top:1px solid #eee;padding:16px 0;">';
+        echo '<div style="font-weight:bold;color:green;font-size:16px;">' . esc_html($dg['score']) . ' <span style="color:#555;">Tuyệt vời</span> - ' . esc_html($dg['name']) . '</div>';
+        echo '<p style="margin: 8px 0;">' . esc_html($dg['content']) . '</p>';
+        echo '</div>';
+      }
+      ?>
+    </div>
+<?php while (have_posts()) : the_post(); ?>
+  <?php
+    $content = apply_filters('the_content', get_the_content());
+    preg_match_all('/<h([2-4])[^>]*>(.*?)<\/h[2-4]>/', $content, $matches, PREG_SET_ORDER);
+
+    foreach ($matches as $index => $heading) {
+      $level = $heading[1];
+      $title = strip_tags($heading[2]);
+      $slug = 'toc-' . $index;
+      $content = preg_replace(
+        '/' . preg_quote($heading[0], '/') . '/',
+        '<h' . $level . ' id="' . $slug . '">' . $heading[2] . '</h' . $level . '>',
+        $content,
+        1
+      );
+      $toc_items[] = [
+        'slug' => $slug,
+        'title' => $title,
+        'level' => $level
+      ];
+    }
+  ?>
+  <section class="hotel-article-section">
+    <div class="container">
+      <div class="hotel-article-wrapper">
+        <aside class="hotel-article-sidebar">
+          <div class="hotel-toc">
+            <h3 id="gioi-thieu" style="font-size: 18px;" >Thông tin chi tiết</h3>
+            <ul>
+              <?php foreach ($toc_items as $item): ?>
+                <li class="toc-level-<?php echo $item['level']; ?>">
+                  <a href="#<?php echo esc_attr($item['slug']); ?>"><?php echo esc_html($item['title']); ?></a>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          </div>
+        </aside>
+        <article class="hotel-article-content">
+          <?php echo $content; ?>
+        </article>
+      </div>
+    </div>
+
+  <style>
+    .hotel-article-section {
+    margin-top: 40px;
+    padding-top:30px;
+    background-color: #fff;
+    }
+
+    .hotel-article-wrapper {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    }
+
+    .hotel-article-sidebar {
+    width: 25%;
+    border-right: 1px solid #eee;
+    padding-right: 20px;
+    font-size: 15px;
+    position: sticky;
+    top: 100px;
+    max-height: 80vh;
+    overflow-y: auto;
+    }
+
+    .hotel-toc h3 {
+    font-weight: bold;
+    margin-bottom: 15px;
+    }
+
+    .hotel-toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    }
+
+    .hotel-toc li {
+    margin-bottom: 8px;
+    }
+
+    .toc-level-2 a {
+    font-weight: 600;
+    color: #000;
+    }
+
+    .toc-level-3 a,
+    .toc-level-4 a {
+    padding-left: 10px;
+    color: #666;
+    font-size: 14px;
+    }
+
+    .hotel-article-content {
+    width: 75%;
+    font-size: 16px;
+    line-height: 1.8;
+    }
+  </style>
+  </section>
+<?php endwhile; ?>
+</div>
+
+<?php get_footer(); ?>
