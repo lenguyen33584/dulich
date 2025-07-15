@@ -1,303 +1,399 @@
-//thanh toán khách sạn
+// form thanh toán khách sạn 
+function hotel_booking_form_shortcode() {
+    ob_start();
+    $post_id = $_GET['hotel_id'] ?? null;
+    $gia_phong = $_GET['price'] ?? 0;
 
-function form_thanh_toan_khachsan_shortcode() {
-ob_start();
-$gia_phong = isset($_GET['price']) ? intval($_GET['price']) : 0;
-?>
-<style>
-/* Giữ nguyên CSS từ form tour */
-.form-tour-wrapper {
-max-width: 800px;
-margin: auto;
-font-family: Arial, sans-serif;
+    if (!$post_id || !get_post($post_id) || get_post_type($post_id) !== 'hotel') {
+        return '<p style="color:red;">Không tìm thấy thông tin khách sạn.</p>';
+    }
+
+    $tieu_de = get_the_title($post_id);
+    $dia_chi = get_field('dia_chi_1', $post_id);
+
+    // Lấy thông tin loại phòng đầu tiên
+    $ten_phong = 'Phòng tiêu chuẩn';
+    $dien_tich = '';
+    $so_nguoi = '';
+    $so_giuong = '';
+    $gia_phong = 1000000;
+
+    $room_index = isset($_GET['room_index']) ? intval($_GET['room_index']) : 0;
+
+    if (have_rows('loai_phong', $post_id)) {
+        $i = 0;
+        while (have_rows('loai_phong', $post_id)) {
+            the_row();
+            if ($i === $room_index) {
+                $ten_phong = get_sub_field('ten_phong') ?: 'Phòng tiêu chuẩn';
+                $dien_tich = get_sub_field('dien_tich_phong');
+                $so_nguoi = get_sub_field('so_nguoi');
+                $so_giuong = get_sub_field('so_giuong');
+                $gia_phong = isset($_GET['price']) ? intval($_GET['price']) : 0;
+                break;
+            }
+            $i++;
+        }
+    }
+    ?>
+    <div class="rules-note">
+    <strong>Chính sách huỷ phòng:</strong><br>
+    • Huỷ trước ngày nhận phòng <strong>tối thiểu 7 ngày</strong>: Hoàn 100%.<br>
+    • Huỷ sau đó: Hoàn tối đa 50% hoặc mất toàn bộ tuỳ theo điều kiện khách sạn.<br>
+    • Hoàn tiền trong <strong>3 ngày làm việc</strong> từ lúc tiếp nhận.
+    </div>
+    <div class="hotel-booking-box">
+        <h2>Chi tiết đặt phòng</h2>
+        <h3><?php echo esc_html($tieu_de); ?></h3>
+        <p>📍 <?php echo esc_html($dia_chi); ?></p>
+
+        <div class="checkin-checkout-row">
+            <div class="date-group">
+                <label>Ngày nhận phòng:</label>
+                <input type="date" id="checkin" required>
+            </div>
+            <div class="date-group">
+                <label>Ngày trả phòng:</label>
+                <input type="date" id="checkout" required>
+            </div>
+        </div>
+
+        <!-- Số phòng -->
+        <div class="room-quantity">
+            <label for="so-phong">Số phòng:</label>
+            <div class="qty-wrapper">
+                <button type="button" class="qty-btn" id="minus">−</button>
+                <input type="number" id="so-phong" value="1" min="1" step="1">
+                <button type="button" class="qty-btn plus" id="plus">+</button>
+            </div>
+        </div>
+
+        <div class="booking-table">
+            <div class="booking-row header">
+                <div>Số đêm phòng</div>
+                <div>Loại 1 phòng</div>
+                <div>Điều kiện 1 phòng</div>
+                <div>Giường phụ</div>
+                <div>Giá phòng/đêm</div>
+            </div>
+            <div class="booking-row">
+                <div><span id="so-dem">1 phòng x 1 đêm</span></div>
+                <div>
+                    <?php echo esc_html($ten_phong); ?><br>
+                    Diện tích <?php echo esc_html($dien_tich); ?>m², <?php echo esc_html($so_giuong); ?> giường<br>
+                    <a href="#">Xem chi tiết</a>
+                </div>
+                <div>
+                    Phòng dành cho <?php echo esc_html($so_nguoi); ?> khách<br>
+                    <b>ĐÃ</b> bao gồm ăn sáng<br>
+                    <b>ĐÃ</b> bao gồm thuế VAT và phí dịch vụ<br>
+                    <span style="color:red">Không hoàn/hủy phòng</span>
+                </div>
+                <div>
+                    <select><option>0</option><option>1</option><option>2</option></select>
+                </div>
+                <div><b><?php echo number_format($gia_phong, 0, ',', '.'); ?>đ</b></div>
+            </div>
+        </div>
+
+        <div class="booking-summary">
+            <div class="summary-line">
+                <span id="room-summary">1 <?php echo esc_html($ten_phong); ?></span>
+                <span id="tien-phong"><?php echo number_format($gia_phong, 0, ',', '.'); ?>đ</span>
+            </div>
+            <div class="summary-line">
+                <span>Thuế & phí</span>
+                <span id="thue-phi">463.000đ</span>
+            </div>
+            <div class="discount-box">
+                <input type="text" placeholder="Nhập mã giảm giá">
+            </div>
+            <div class="summary-line total">
+                <span>Tổng tiền:</span>
+                <span style="color: red; font-weight: bold;" id="tong-tien">...</span>
+            </div>
+            <p><strong>+ <span id="diem-thuong">...</span> điểm</strong></p>
+        </div>
+
+        <hr style="margin: 30px 0;">
+        <div class="contact-info">
+            <h3>Thông tin Liên hệ</h3>
+            <form>
+                <div class="gender-options">
+                    <label class="gender-label">Quý danh*:</label>
+                    <label><input type="radio" name="gender" required> Ông</label>
+                    <label><input type="radio" name="gender"> Bà</label>
+                    <label><input type="radio" name="gender"> Anh</label>
+                    <label><input type="radio" name="gender"> Chị</label>
+                </div>
+
+                <input type="text" placeholder="Họ và tên" required style="width: 100%; padding: 8px;"><br><br>
+                <input type="text" placeholder="Số điện thoại*" required style="width: 48%; padding: 8px; display: inline-block; margin-right: 4%;">
+                <input type="email" placeholder="Email" style="width: 48%; padding: 8px; display: inline-block;"><br><br>
+                <textarea placeholder="Nội dung yêu cầu" style="width: 100%; height: 80px; padding: 8px;"></textarea><br><br>
+                <label><input type="checkbox"> Tôi muốn xuất hóa đơn đỏ.</label><br><br>
+
+                <p style="font-size: 13px;">* Khi Quý khách nhấn nút "Gửi yêu cầu đặt phòng" cũng đồng nghĩa là Quý khách đã đồng ý với các <a href="#" target="_blank">điều khoản và điều kiện</a>.</p>
+
+                <button type="submit" style="background-color: #660000; color: white; padding: 12px 25px; font-size: 16px; border: none; cursor: pointer;">Gửi yêu cầu đặt phòng</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkin = document.getElementById('checkin');
+        const checkout = document.getElementById('checkout');
+        const soPhongInput = document.getElementById('so-phong');
+        const btnMinus = document.getElementById('minus');
+        const btnPlus = document.getElementById('plus');
+        const giaPhong = <?php echo intval($gia_phong); ?>;
+        const thuePhi = 463000;
+
+        const today = new Date();
+        const tomorrow = new Date();
+        tomorrow.setDate(today.getDate() + 1);
+
+        const todayStr = today.toISOString().split('T')[0];
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+        checkin.value = todayStr;
+        checkout.value = tomorrowStr;
+        checkout.min = tomorrowStr;
+
+        function updatePrice() {
+            const inDate = new Date(checkin.value);
+            const outDate = new Date(checkout.value);
+            const soPhong = parseInt(soPhongInput.value) || 1;
+
+            if (!checkin.value || !checkout.value || outDate <= inDate) {
+                document.getElementById('so-dem').innerText = `${soPhong} phòng x ? đêm`;
+                document.getElementById('room-summary').innerText = `${soPhong} phòng`;
+                document.getElementById('tien-phong').innerText = '...';
+                document.getElementById('tong-tien').innerText = '...';
+                document.getElementById('diem-thuong').innerText = '...';
+                return;
+            }
+
+            const soDem = Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
+            const tienPhong = giaPhong * soDem * soPhong;
+            const tong = tienPhong + thuePhi;
+            const diem = Math.round(tong * 0.01);
+
+            document.getElementById('so-dem').innerText = `${soPhong} phòng x ${soDem} đêm`;
+            document.getElementById('room-summary').innerText = `${soPhong} <?php echo esc_js($ten_phong); ?>`;
+            document.getElementById('tien-phong').innerText = tienPhong.toLocaleString('vi-VN') + 'đ';
+            document.getElementById('tong-tien').innerText = tong.toLocaleString('vi-VN') + 'đ';
+            document.getElementById('diem-thuong').innerText = diem.toLocaleString('vi-VN');
+        }
+
+        checkin.addEventListener('change', () => {
+            const inDate = new Date(checkin.value);
+            const minCheckout = new Date(inDate);
+            minCheckout.setDate(minCheckout.getDate() + 1);
+            checkout.min = minCheckout.toISOString().split('T')[0];
+            if (new Date(checkout.value) <= inDate) {
+                checkout.value = checkout.min;
+            }
+            updatePrice();
+        });
+
+        checkout.addEventListener('change', updatePrice);
+        btnMinus.addEventListener('click', () => {
+            let val = Math.max(1, parseInt(soPhongInput.value) - 1);
+            soPhongInput.value = val;
+            updatePrice();
+        });
+        btnPlus.addEventListener('click', () => {
+            let val = parseInt(soPhongInput.value) + 1;
+            soPhongInput.value = val;
+            updatePrice();
+        });
+
+        updatePrice();
+    });
+    </script>
+
+    <style>
+.hotel-booking-box {
+    border: 1px solid #ddd;
+    padding: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+    font-family: Arial;
 }
-.form-grid {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 15px;
+.checkin-checkout-row {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
-.form-grid label {
-font-weight: 500;
-font-size: 14px;
-display: flex;
-flex-direction: column;
+.date-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
-.form-grid input,
-.form-grid select,
-.form-grid textarea {
-padding: 10px;
-border: 1px solid #ccc;
-border-radius: 6px;
-margin-top: 5px;
-font-size: 14px;
+.date-group input[type="date"] {
+    padding: 6px;
+    width: 180px;
 }
-.form-grid textarea {
-resize: vertical;
+
+.room-quantity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    margin: 20px 0;
 }
-.form-grid .full-row {
-grid-column: 1 / -1;
+.qty-wrapper {
+    display: flex;
+    align-items: stretch;
+    border: none;
 }
-.form-submit {
-text-align: center;
-margin-top: 20px;
+.qty-btn {
+    width: 36px;
+    height: 40px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
-.form-submit button {
-padding: 12px 40px;
-background: #660000;
-color: white;
-border: none;
-border-radius: 6px;
-font-size: 16px;
-cursor: pointer;
+.qty-btn#minus {
+    background-color: #999;
+    border-radius: 20px 0 0 20px;
+    margin-right: -1px;
 }
-.highlight-option {
-background: #fff8e1;
-padding: 10px;
-border: 2px solid #ffa000;
-border-radius: 6px;
+.qty-btn#plus {
+    background-color: #009BFF;
+    border-radius: 0 20px 20px 0;
+    margin-left: -1px;
 }
-.price-display {
-font-weight: bold;
-font-size: 16px;
-color: #333;
-display: flex;
-align-items: baseline;
+.qty-wrapper input {
+    width: 46px;
+    height: 40px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid #eee;
+    border-left: none;
+    border-right: none;
+    padding: 0;
+    background: #fff;
+    color: #333;
 }
-.price-bf {
-font-size: 16px;
-color: #aaa!important;
-text-decoration: line-through;
-font-style: italic;
-font-weight: normal;
-opacity: 0.7!important;
-margin-bottom: -8px;
+.booking-table {
+    border: 1px solid #ddd;
+    display: table;
+    width: 100%;
+    margin-bottom: 20px;
 }
-.rules-note {
-background: #f9f9f9;
-padding: 15px;
-border-left: 4px solid #660000;
-margin-bottom: 20px;
-font-size: 14px;
-line-height: 1.5;
+.booking-row {
+    display: table-row;
+}
+.booking-row > div {
+    display: table-cell;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    vertical-align: top;
+}
+.booking-row.header > div {
+    background-color: #f9f9f9;
+    font-weight: bold;
+    text-align: center;
+}
+.booking-summary {
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+.summary-line.total {
+    font-size: 18px;
+}
+.discount-box {
+    margin: 10px 0;
+}
+.discount-box input {
+    width: 100%;
+    padding: 8px;
+}
+.gender-options {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+.gender-label {
+    min-width: 90px;
+    font-weight: bold;
+}
+.contact-info form input,
+.contact-info form textarea {
+    font-size: 14px;
+}
+.hotel-booking-box button[type="submit"] {
+    background-color: #660000;
+    color: white;
+    padding: 12px 25px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+}
+.hotel-booking-box button[type="submit"]:hover {
+    background-color: #e06600;
+}
+
+/* Xóa mũi tên input số */
+#so-phong::-webkit-inner-spin-button,
+#so-phong::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+#so-phong {
+    -moz-appearance: textfield;
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 768px) {
+    .checkin-checkout-row {
+        flex-direction: column;
+    }
+    .booking-row {
+        display: block;
+        margin-bottom: 20px;
+        border: 1px dashed #ccc;
+    }
+    .booking-row > div {
+        display: block;
+        border: none;
+        border-bottom: 1px dashed #ccc;
+        padding: 10px;
+    }
+    .booking-row > div:last-child {
+        border-bottom: none;
+    }
+    .booking-row.header {
+        display: none;
+    }
+    .summary-line {
+        flex-direction: column;
+        gap: 4px;
+    }
 }
 </style>
 
-<div class="form-tour-wrapper">
-<form id="payment-form" onsubmit="return false;">
-<div class="rules-note">
-<strong>Chính sách huỷ phòng:</strong><br>
-• Huỷ trước ngày nhận phòng <strong>tối thiểu 7 ngày</strong>: Hoàn 100%.<br>
-• Huỷ sau đó: Hoàn tối đa 50% hoặc mất toàn bộ tuỳ theo điều kiện khách sạn.<br>
-• Hoàn tiền trong <strong>3 ngày làm việc</strong> từ lúc tiếp nhận.
-</div>
-<div class="form-grid">
-<p class="full-row price-bf">
-Giá niêm yết: <span id="listed-price"><?= number_format($gia_phong, 0, ',', '.') ?> đ</span>
-</p>
-<p class="full-row price-display">
-Tổng giá thanh toán: <span id="final-price"><?= number_format($gia_phong, 0, ',', '.') ?> đ</span>
-</p>
-
-<label>Ngày nhận phòng:
-<input type="date" id="checkin" onchange="updateHotelPrice()">
-</label>
-
-<label>Ngày trả phòng:
-<input type="date" id="checkout" onchange="updateHotelPrice()">
-</label>
-
-<div class="full-row" style="display:grid; grid-template-columns:repeat(3,1fr);gap:15px;">
-<label>Người lớn:
-<select name="nguoi_lon" id="nguoi_lon" onchange="updateHotelPrice()">
-<option value="1">1</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="5">5</option>
-<option value="6">6</option>
-<option value="7">7</option>
-<option value="8">8</option>
-<option value="9">9</option>
-<option value="10">10</option>
-<option value="11">11</option>
-<option value="12">12</option>
-</select>
-</label>
-<label>Trẻ em (2-12):
-<select name="tre_em" id="tre_em" onchange="updateHotelPrice()">
-<option value="0">0</option><option value="1">1</option><option value="2">2</option>
-</select>
-</label>
-<label>Em bé (&lt;2):
-<select name="em_be" id="em_be" onchange="updateHotelPrice()">
-<option value="0">0</option><option value="1">1</option><option value="2">2</option>
-</select>
-</label>
-</div>
-
-<label>Quý danh:
-<select name="quy_danh">
-<option value="Ông">Ông</option>
-<option value="Bà">Bà</option>
-</select>
-</label>
-
-<label>Họ tên: (*)
-<input type="text" id="user-name" placeholder="Họ tên của bạn" required>
-</label>
-
-<label>Email: (*)
-<input type="email" id="user-email" placeholder="Email" required>
-</label>
-
-<label>Số điện thoại:
-<input type="tel" id="sdt" placeholder="SĐT">
-</label>
-
-<label class="full-row highlight-option">
-Hình thức thanh toán: (*)
-<select id="payment_type" required onchange="updateHotelPrice()" style="margin-top: 5px; padding: 10px;">
-<option value="">-- Vui lòng chọn hình thức thanh toán --</option>
-<option value="100">Thanh toán toàn bộ (giảm thêm 20%)</option>
-<option value="30">Cọc giữ chỗ</option>
-</select>
-</label>
-
-<label class="full-row">Yêu cầu đặc biệt:
-<textarea name="yeu_cau_dac_biet" rows="3"></textarea>
-</label>
-
-<div id="qr-popup" class="full-row" style="text-align:center;"></div>
-</div>
-
-<div class="form-submit">
-<button id="confirm-button" type="button" onclick="submitPayment()">Xác nhận thanh toán</button>
-</div>
-</form>
-</div>
-
-<script>
-let basePrice = <?= $gia_phong ?>;
-let calculatedAmount = basePrice;
-
-function updateHotelPrice() {
-    const nguoiLon = parseInt(document.getElementById('nguoi_lon').value || 0);
-    const treEm = parseInt(document.getElementById('tre_em').value || 0);
-    const paymentType = parseInt(document.getElementById('payment_type').value || 0);
-    const checkinEl = document.getElementById('checkin');
-    const checkoutEl = document.getElementById('checkout');
-
-    const checkin = new Date(checkinEl.value);
-    const checkout = new Date(checkoutEl.value);
-
-    if (checkin && checkout && checkout <= checkin) {
-        alert("Ngày trả phòng phải sau ngày nhận phòng.");
-        checkoutEl.value = "";
-        document.getElementById('final-price').innerText = '0 đ';
-        document.getElementById('listed-price').innerText = '0 đ';
-        calculatedAmount = 0;
-        return;
-    }
-
-    let days = Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24));
-    if (isNaN(days) || days <= 0) days = 1;
-
-    const listedPrice = days * ((nguoiLon * basePrice) + (treEm * basePrice * 0.5));
-    let finalPrice = listedPrice;
-
-    if (paymentType === 100) finalPrice *= 0.8;
-    else if (paymentType === 30) finalPrice *= 0.3;
-
-    calculatedAmount = Math.round(finalPrice);
-    document.getElementById('final-price').innerText = calculatedAmount.toLocaleString('vi-VN') + ' đ';
-    document.getElementById('listed-price').innerText = Math.round(listedPrice).toLocaleString('vi-VN') + ' đ';
+    <?php
+    return ob_get_clean();
 }
-
-function submitPayment() {
-    document.getElementById("confirm-button").disabled = true;
-    const name = document.getElementById('user-name').value.trim();
-    const email = document.getElementById('user-email').value.trim();
-    const qrPopup = document.getElementById("qr-popup");
-
-    if (!name || !email || calculatedAmount === 0) {
-        alert('Vui lòng nhập đủ Họ tên, Email và chọn hình thức thanh toán.');
-        document.getElementById("confirm-button").disabled = false;
-        return;
-    }
-
-    qrPopup.innerHTML = `
-        <div style="text-align:center">
-            <p style="font-weight:bold; color:#cc0000;">Đang lấy mã QR tự động... Vui lòng chờ khoảng 2 phút</p>
-            <div id="countdown" style="font-size:24px; font-weight:bold; margin:10px;">02:00</div>
-        </div>
-    `;
-
-    startCountdown(120);
-
-    const formData = new URLSearchParams();
-    formData.append('price', calculatedAmount);
-
-    fetch("https://restoration-reasons-impose-mat.trycloudflare.com/run-bot", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData.toString()
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("QR lỗi");
-        return res.blob();
-    })
-    .then(blob => {
-        const url = URL.createObjectURL(blob);
-        showQR(url);
-    })
-    .catch(() => {
-        qrPopup.innerHTML = `<p style="color:red">Lỗi tạo mã QR. Vui lòng tải lại trang để thử lại.</p>`;
-    });
-}
-
-function showQR(qrUrl) {
-    const qrPopup = document.getElementById("qr-popup");
-    qrPopup.innerHTML = `
-        <div style="text-align:center">
-            <strong>Mã QR thanh toán:</strong><br>
-            <img src="${qrUrl}" style="max-width:300px;"><br><br>
-            <label>Gửi ảnh xác nhận chuyển khoản:
-                <input type="file" id="upload-proof" accept="image/*">
-            </label><br><br>
-            <button onclick="confirmPayment()">Đã chuyển khoản</button>
-            <p id="confirm-message" style="margin-top:10px; font-weight:bold; color:#cc0000">
-                ⚠️ Nếu mã QR không hợp lệ hoặc đã được sử dụng, vui lòng tải lại trang để tạo mã mới.
-            </p>
-        </div>
-    `;
-}
-
-function startCountdown(duration) {
-    let timer = duration;
-    const countdown = document.getElementById('countdown');
-    const interval = setInterval(() => {
-        const minutes = String(Math.floor(timer / 60)).padStart(2, '0');
-        const seconds = String(timer % 60).padStart(2, '0');
-        countdown.innerText = `${minutes}:${seconds}`;
-        if (--timer < 0) clearInterval(interval);
-    }, 1000);
-}
-
-function confirmPayment() {
-    const fileInput = document.getElementById('upload-proof');
-    const msg = document.getElementById('confirm-message');
-    if (!fileInput || !fileInput.files.length) {
-        msg.innerText = 'Vui lòng gửi ảnh xác nhận chuyển khoản trước khi xác nhận.';
-        msg.style.color = 'red';
-        return;
-    }
-    msg.style.color = 'green';
-    msg.innerText = 'Quý khách vui lòng kiểm tra email để xác nhận đặt thành công dịch vụ.';
-}
-
-window.addEventListener("DOMContentLoaded", updateHotelPrice);
-</script>
-<?php
-return ob_get_clean();
-}
-add_shortcode('form_thanh_toan_khachsan', 'form_thanh_toan_khachsan_shortcode');
+add_shortcode('hotel_booking_form', 'hotel_booking_form_shortcode');
