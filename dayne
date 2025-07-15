@@ -1,1 +1,303 @@
-https://annamtourist.rf.gd/thanh-toan-2/?hotel_id=3369&price=4030000&room_index=1
+//thanh toán khách sạn
+
+function form_thanh_toan_khachsan_shortcode() {
+ob_start();
+$gia_phong = isset($_GET['price']) ? intval($_GET['price']) : 0;
+?>
+<style>
+/* Giữ nguyên CSS từ form tour */
+.form-tour-wrapper {
+max-width: 800px;
+margin: auto;
+font-family: Arial, sans-serif;
+}
+.form-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 15px;
+}
+.form-grid label {
+font-weight: 500;
+font-size: 14px;
+display: flex;
+flex-direction: column;
+}
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+padding: 10px;
+border: 1px solid #ccc;
+border-radius: 6px;
+margin-top: 5px;
+font-size: 14px;
+}
+.form-grid textarea {
+resize: vertical;
+}
+.form-grid .full-row {
+grid-column: 1 / -1;
+}
+.form-submit {
+text-align: center;
+margin-top: 20px;
+}
+.form-submit button {
+padding: 12px 40px;
+background: #660000;
+color: white;
+border: none;
+border-radius: 6px;
+font-size: 16px;
+cursor: pointer;
+}
+.highlight-option {
+background: #fff8e1;
+padding: 10px;
+border: 2px solid #ffa000;
+border-radius: 6px;
+}
+.price-display {
+font-weight: bold;
+font-size: 16px;
+color: #333;
+display: flex;
+align-items: baseline;
+}
+.price-bf {
+font-size: 16px;
+color: #aaa!important;
+text-decoration: line-through;
+font-style: italic;
+font-weight: normal;
+opacity: 0.7!important;
+margin-bottom: -8px;
+}
+.rules-note {
+background: #f9f9f9;
+padding: 15px;
+border-left: 4px solid #660000;
+margin-bottom: 20px;
+font-size: 14px;
+line-height: 1.5;
+}
+</style>
+
+<div class="form-tour-wrapper">
+<form id="payment-form" onsubmit="return false;">
+<div class="rules-note">
+<strong>Chính sách huỷ phòng:</strong><br>
+• Huỷ trước ngày nhận phòng <strong>tối thiểu 7 ngày</strong>: Hoàn 100%.<br>
+• Huỷ sau đó: Hoàn tối đa 50% hoặc mất toàn bộ tuỳ theo điều kiện khách sạn.<br>
+• Hoàn tiền trong <strong>3 ngày làm việc</strong> từ lúc tiếp nhận.
+</div>
+<div class="form-grid">
+<p class="full-row price-bf">
+Giá niêm yết: <span id="listed-price"><?= number_format($gia_phong, 0, ',', '.') ?> đ</span>
+</p>
+<p class="full-row price-display">
+Tổng giá thanh toán: <span id="final-price"><?= number_format($gia_phong, 0, ',', '.') ?> đ</span>
+</p>
+
+<label>Ngày nhận phòng:
+<input type="date" id="checkin" onchange="updateHotelPrice()">
+</label>
+
+<label>Ngày trả phòng:
+<input type="date" id="checkout" onchange="updateHotelPrice()">
+</label>
+
+<div class="full-row" style="display:grid; grid-template-columns:repeat(3,1fr);gap:15px;">
+<label>Người lớn:
+<select name="nguoi_lon" id="nguoi_lon" onchange="updateHotelPrice()">
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="11">11</option>
+<option value="12">12</option>
+</select>
+</label>
+<label>Trẻ em (2-12):
+<select name="tre_em" id="tre_em" onchange="updateHotelPrice()">
+<option value="0">0</option><option value="1">1</option><option value="2">2</option>
+</select>
+</label>
+<label>Em bé (&lt;2):
+<select name="em_be" id="em_be" onchange="updateHotelPrice()">
+<option value="0">0</option><option value="1">1</option><option value="2">2</option>
+</select>
+</label>
+</div>
+
+<label>Quý danh:
+<select name="quy_danh">
+<option value="Ông">Ông</option>
+<option value="Bà">Bà</option>
+</select>
+</label>
+
+<label>Họ tên: (*)
+<input type="text" id="user-name" placeholder="Họ tên của bạn" required>
+</label>
+
+<label>Email: (*)
+<input type="email" id="user-email" placeholder="Email" required>
+</label>
+
+<label>Số điện thoại:
+<input type="tel" id="sdt" placeholder="SĐT">
+</label>
+
+<label class="full-row highlight-option">
+Hình thức thanh toán: (*)
+<select id="payment_type" required onchange="updateHotelPrice()" style="margin-top: 5px; padding: 10px;">
+<option value="">-- Vui lòng chọn hình thức thanh toán --</option>
+<option value="100">Thanh toán toàn bộ (giảm thêm 20%)</option>
+<option value="30">Cọc giữ chỗ</option>
+</select>
+</label>
+
+<label class="full-row">Yêu cầu đặc biệt:
+<textarea name="yeu_cau_dac_biet" rows="3"></textarea>
+</label>
+
+<div id="qr-popup" class="full-row" style="text-align:center;"></div>
+</div>
+
+<div class="form-submit">
+<button id="confirm-button" type="button" onclick="submitPayment()">Xác nhận thanh toán</button>
+</div>
+</form>
+</div>
+
+<script>
+let basePrice = <?= $gia_phong ?>;
+let calculatedAmount = basePrice;
+
+function updateHotelPrice() {
+    const nguoiLon = parseInt(document.getElementById('nguoi_lon').value || 0);
+    const treEm = parseInt(document.getElementById('tre_em').value || 0);
+    const paymentType = parseInt(document.getElementById('payment_type').value || 0);
+    const checkinEl = document.getElementById('checkin');
+    const checkoutEl = document.getElementById('checkout');
+
+    const checkin = new Date(checkinEl.value);
+    const checkout = new Date(checkoutEl.value);
+
+    if (checkin && checkout && checkout <= checkin) {
+        alert("Ngày trả phòng phải sau ngày nhận phòng.");
+        checkoutEl.value = "";
+        document.getElementById('final-price').innerText = '0 đ';
+        document.getElementById('listed-price').innerText = '0 đ';
+        calculatedAmount = 0;
+        return;
+    }
+
+    let days = Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24));
+    if (isNaN(days) || days <= 0) days = 1;
+
+    const listedPrice = days * ((nguoiLon * basePrice) + (treEm * basePrice * 0.5));
+    let finalPrice = listedPrice;
+
+    if (paymentType === 100) finalPrice *= 0.8;
+    else if (paymentType === 30) finalPrice *= 0.3;
+
+    calculatedAmount = Math.round(finalPrice);
+    document.getElementById('final-price').innerText = calculatedAmount.toLocaleString('vi-VN') + ' đ';
+    document.getElementById('listed-price').innerText = Math.round(listedPrice).toLocaleString('vi-VN') + ' đ';
+}
+
+function submitPayment() {
+    document.getElementById("confirm-button").disabled = true;
+    const name = document.getElementById('user-name').value.trim();
+    const email = document.getElementById('user-email').value.trim();
+    const qrPopup = document.getElementById("qr-popup");
+
+    if (!name || !email || calculatedAmount === 0) {
+        alert('Vui lòng nhập đủ Họ tên, Email và chọn hình thức thanh toán.');
+        document.getElementById("confirm-button").disabled = false;
+        return;
+    }
+
+    qrPopup.innerHTML = `
+        <div style="text-align:center">
+            <p style="font-weight:bold; color:#cc0000;">Đang lấy mã QR tự động... Vui lòng chờ khoảng 2 phút</p>
+            <div id="countdown" style="font-size:24px; font-weight:bold; margin:10px;">02:00</div>
+        </div>
+    `;
+
+    startCountdown(120);
+
+    const formData = new URLSearchParams();
+    formData.append('price', calculatedAmount);
+
+    fetch("https://restoration-reasons-impose-mat.trycloudflare.com/run-bot", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString()
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("QR lỗi");
+        return res.blob();
+    })
+    .then(blob => {
+        const url = URL.createObjectURL(blob);
+        showQR(url);
+    })
+    .catch(() => {
+        qrPopup.innerHTML = `<p style="color:red">Lỗi tạo mã QR. Vui lòng tải lại trang để thử lại.</p>`;
+    });
+}
+
+function showQR(qrUrl) {
+    const qrPopup = document.getElementById("qr-popup");
+    qrPopup.innerHTML = `
+        <div style="text-align:center">
+            <strong>Mã QR thanh toán:</strong><br>
+            <img src="${qrUrl}" style="max-width:300px;"><br><br>
+            <label>Gửi ảnh xác nhận chuyển khoản:
+                <input type="file" id="upload-proof" accept="image/*">
+            </label><br><br>
+            <button onclick="confirmPayment()">Đã chuyển khoản</button>
+            <p id="confirm-message" style="margin-top:10px; font-weight:bold; color:#cc0000">
+                ⚠️ Nếu mã QR không hợp lệ hoặc đã được sử dụng, vui lòng tải lại trang để tạo mã mới.
+            </p>
+        </div>
+    `;
+}
+
+function startCountdown(duration) {
+    let timer = duration;
+    const countdown = document.getElementById('countdown');
+    const interval = setInterval(() => {
+        const minutes = String(Math.floor(timer / 60)).padStart(2, '0');
+        const seconds = String(timer % 60).padStart(2, '0');
+        countdown.innerText = `${minutes}:${seconds}`;
+        if (--timer < 0) clearInterval(interval);
+    }, 1000);
+}
+
+function confirmPayment() {
+    const fileInput = document.getElementById('upload-proof');
+    const msg = document.getElementById('confirm-message');
+    if (!fileInput || !fileInput.files.length) {
+        msg.innerText = 'Vui lòng gửi ảnh xác nhận chuyển khoản trước khi xác nhận.';
+        msg.style.color = 'red';
+        return;
+    }
+    msg.style.color = 'green';
+    msg.innerText = 'Quý khách vui lòng kiểm tra email để xác nhận đặt thành công dịch vụ.';
+}
+
+window.addEventListener("DOMContentLoaded", updateHotelPrice);
+</script>
+<?php
+return ob_get_clean();
+}
+add_shortcode('form_thanh_toan_khachsan', 'form_thanh_toan_khachsan_shortcode');
