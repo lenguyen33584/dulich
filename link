@@ -1,3 +1,50 @@
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkin = document.getElementById('checkin');
+        const checkout = document.getElementById('checkout');
+        const soPhongInput = document.getElementById('so-phong');
+        const btnMinus = document.getElementById('minus');
+        const btnPlus = document.getElementById('plus');
+        const giaPhong = <?php echo intval($gia_phong); ?>;
+        const thuePhi = 463000;
+
+        const today = new Date();
+        const tomorrow = new Date();
+        tomorrow.setDate(today.getDate() + 1);
+
+        const todayStr = today.toISOString().split('T')[0];
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+        checkin.value = todayStr;
+        checkout.value = tomorrowStr;
+        checkout.min = tomorrowStr;
+
+        function updatePrice() {
+            const inDate = new Date(checkin.value);
+            const outDate = new Date(checkout.value);
+            const soPhong = parseInt(soPhongInput.value) || 1;
+
+            if (!checkin.value || !checkout.value || outDate <= inDate) {
+                document.getElementById('so-dem').innerText = `${soPhong} phòng x ? đêm`;
+                document.getElementById('room-summary').innerText = `${soPhong} phòng`;
+                document.getElementById('tien-phong').innerText = '...';
+                document.getElementById('tong-tien').innerText = '...';
+                document.getElementById('diem-thuong').innerText = '...';
+                return;
+            }
+
+            const soDem = Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
+            const tienPhong = giaPhong * soDem * soPhong;
+            const tong = tienPhong + thuePhi;
+            const diem = Math.round(tong * 0.01);
+
+            document.getElementById('so-dem').innerText = `${soPhong} phòng x ${soDem} đêm`;
+            document.getElementById('room-summary').innerText = `${soPhong} <?php echo esc_js($ten_phong); ?>`;
+            document.getElementById('tien-phong').innerText = tienPhong.toLocaleString('vi-VN') + 'đ';
+            document.getElementById('tong-tien').innerText = tong.toLocaleString('vi-VN') + 'đ';
+            document.getElementById('diem-thuong').innerText = diem.toLocaleString('vi-VN');
+        }
+
 function submitPayment() {
     document.getElementById("confirm-button").disabled = true;
 
@@ -57,7 +104,7 @@ function showQR(qrUrl) {
             </p>
         </div>
     `;
-}
+}}
 
 function startCountdown(duration) {
     let timer = duration;
@@ -83,3 +130,6 @@ function confirmPayment() {
 }
 
 window.addEventListener("DOMContentLoaded", updatePrice);
+</script>
+    });
+    </script>
