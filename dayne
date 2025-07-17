@@ -127,9 +127,9 @@ function hotel_booking_form_shortcode() {
                     <label><input type="radio" name="gender"> Chị</label>
                 </div>
 
-                <input type="text" placeholder="Họ và tên" required style="width: 100%; padding: 8px;"><br><br>
+                <input type="text" id="user-name" placeholder="Họ và tên" required style="width: 100%; padding: 8px;"><br><br>
                 <input type="text" placeholder="Số điện thoại*" required style="width: 48%; padding: 8px; display: inline-block; margin-right: 4%;">
-                <input type="email" placeholder="Email" style="width: 48%; padding: 8px; display: inline-block;"><br><br>
+                <input type="email" id="user-email" placeholder="Email" style="width: 48%; padding: 8px; display: inline-block;"><br><br>
                 <textarea placeholder="Nội dung yêu cầu" style="width: 100%; height: 80px; padding: 8px;"></textarea><br><br>
                 <label><input type="checkbox"> Tôi muốn xuất hóa đơn đỏ.</label><br><br>
 
@@ -140,79 +140,161 @@ function hotel_booking_form_shortcode() {
         </div>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const checkin = document.getElementById('checkin');
-        const checkout = document.getElementById('checkout');
-        const soPhongInput = document.getElementById('so-phong');
-        const btnMinus = document.getElementById('minus');
-        const btnPlus = document.getElementById('plus');
-        const giaPhong = <?php echo intval($gia_phong); ?>;
-        const thuePhi = 463000;
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const checkin = document.getElementById('checkin');
+    const checkout = document.getElementById('checkout');
+    const soPhongInput = document.getElementById('so-phong');
+    const btnMinus = document.getElementById('minus');
+    const btnPlus = document.getElementById('plus');
+    const giaPhong = <?php echo intval($gia_phong); ?>;
+    const thuePhi = 463000;
 
-        const today = new Date();
-        const tomorrow = new Date();
-        tomorrow.setDate(today.getDate() + 1);
+    let calculatedAmount = 0;
 
-        const todayStr = today.toISOString().split('T')[0];
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
 
-        checkin.value = todayStr;
-        checkout.value = tomorrowStr;
-        checkout.min = tomorrowStr;
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-        function updatePrice() {
-            const inDate = new Date(checkin.value);
-            const outDate = new Date(checkout.value);
-            const soPhong = parseInt(soPhongInput.value) || 1;
+    checkin.value = todayStr;
+    checkout.value = tomorrowStr;
+    checkout.min = tomorrowStr;
 
-            if (!checkin.value || !checkout.value || outDate <= inDate) {
-                document.getElementById('so-dem').innerText = `${soPhong} phòng x ? đêm`;
-                document.getElementById('room-summary').innerText = `${soPhong} phòng`;
-                document.getElementById('tien-phong').innerText = '...';
-                document.getElementById('tong-tien').innerText = '...';
-                document.getElementById('diem-thuong').innerText = '...';
-                return;
-            }
+    function updatePrice() {
+        const inDate = new Date(checkin.value);
+        const outDate = new Date(checkout.value);
+        const soPhong = parseInt(soPhongInput.value) || 1;
 
-            const soDem = Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
-            const tienPhong = giaPhong * soDem * soPhong;
-            const tong = tienPhong + thuePhi;
-            const diem = Math.round(tong * 0.01);
-
-            document.getElementById('so-dem').innerText = `${soPhong} phòng x ${soDem} đêm`;
-            document.getElementById('room-summary').innerText = `${soPhong} <?php echo esc_js($ten_phong); ?>`;
-            document.getElementById('tien-phong').innerText = tienPhong.toLocaleString('vi-VN') + 'đ';
-            document.getElementById('tong-tien').innerText = tong.toLocaleString('vi-VN') + 'đ';
-            document.getElementById('diem-thuong').innerText = diem.toLocaleString('vi-VN');
+        if (!checkin.value || !checkout.value || outDate <= inDate) {
+            document.getElementById('so-dem').innerText = `${soPhong} phòng x ? đêm`;
+            document.getElementById('room-summary').innerText = `${soPhong} phòng`;
+            document.getElementById('tien-phong').innerText = '...';
+            document.getElementById('tong-tien').innerText = '...';
+            document.getElementById('diem-thuong').innerText = '...';
+            calculatedAmount = 0;
+            return;
         }
 
-        checkin.addEventListener('change', () => {
-            const inDate = new Date(checkin.value);
-            const minCheckout = new Date(inDate);
-            minCheckout.setDate(minCheckout.getDate() + 1);
-            checkout.min = minCheckout.toISOString().split('T')[0];
-            if (new Date(checkout.value) <= inDate) {
-                checkout.value = checkout.min;
-            }
-            updatePrice();
-        });
+        const soDem = Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
+        const tienPhong = giaPhong * soDem * soPhong;
+        const tong = tienPhong + thuePhi;
+        const diem = Math.round(tong * 0.01);
 
-        checkout.addEventListener('change', updatePrice);
-        btnMinus.addEventListener('click', () => {
-            let val = Math.max(1, parseInt(soPhongInput.value) - 1);
-            soPhongInput.value = val;
-            updatePrice();
-        });
-        btnPlus.addEventListener('click', () => {
-            let val = parseInt(soPhongInput.value) + 1;
-            soPhongInput.value = val;
-            updatePrice();
-        });
+        calculatedAmount = tong;
 
+        document.getElementById('so-dem').innerText = `${soPhong} phòng x ${soDem} đêm`;
+        document.getElementById('room-summary').innerText = `${soPhong} <?php echo esc_js($ten_phong); ?>`;
+        document.getElementById('tien-phong').innerText = tienPhong.toLocaleString('vi-VN') + 'đ';
+        document.getElementById('tong-tien').innerText = tong.toLocaleString('vi-VN') + 'đ';
+        document.getElementById('diem-thuong').innerText = diem.toLocaleString('vi-VN');
+    }
+
+    checkin.addEventListener('change', updatePrice);
+    checkout.addEventListener('change', updatePrice);
+    soPhongInput.addEventListener('change', updatePrice);
+    btnMinus.addEventListener('click', () => {
+        let val = parseInt(soPhongInput.value) || 1;
+        if (val > 1) {
+            soPhongInput.value = val - 1;
+            updatePrice();
+        }
+    });
+    btnPlus.addEventListener('click', () => {
+        let val = parseInt(soPhongInput.value) || 1;
+        soPhongInput.value = val + 1;
         updatePrice();
     });
-    </script>
+
+    updatePrice(); // khởi tạo ban đầu
+
+    window.submitPayment = function () {
+        document.getElementById("confirm-button").disabled = true;
+
+        const name = document.getElementById('user-name').value.trim();
+        const email = document.getElementById('user-email').value.trim();
+        const qrPopup = document.getElementById("qr-popup");
+
+        if (!name || !email || calculatedAmount === 0) {
+            alert('Vui lòng nhập đủ Họ tên, Email và chọn hình thức thanh toán.');
+            document.getElementById("confirm-button").disabled = false;
+            return;
+        }
+
+        qrPopup.innerHTML = `
+            <div style="text-align:center">
+                <p style="font-weight:bold; color:#cc0000;">Đang lấy mã QR tự động... Vui lòng chờ khoảng 2 phút</p>
+                <div id="countdown" style="font-size:24px; font-weight:bold; margin:10px;">02:00</div>
+            </div>
+        `;
+        startCountdown(120);
+        getQR();
+    };
+
+    function getQR() {
+        const qrPopup = document.getElementById("qr-popup");
+
+        const formData = new URLSearchParams();
+        formData.append('price', calculatedAmount);
+
+        fetch("https://restoration-reasons-impose-mat.trycloudflare.com/run-bot", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData.toString()
+        })
+        .then(res => res.blob())
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            showQR(url);
+        })
+        .catch(() => {
+            qrPopup.innerHTML = `<p style="color:red">Lỗi tạo mã QR. Vui lòng thử lại sau.</p>`;
+        });
+    }
+
+    function showQR(qrUrl) {
+        const qrPopup = document.getElementById("qr-popup");
+        qrPopup.innerHTML = `
+            <div style="text-align:center">
+                <strong>Mã QR thanh toán:</strong><br>
+                <img src="${qrUrl}" style="max-width:300px;"><br><br>
+                <label>Gửi ảnh xác nhận chuyển khoản:
+                    <input type="file" id="upload-proof" accept="image/*">
+                </label><br><br>
+                <button onclick="confirmPayment()">Đã chuyển khoản</button>
+                <p id="confirm-message" style="margin-top:10px; font-weight:bold; color:#cc0000">
+                    ⚠️ Nếu mã QR không hợp lệ hoặc đã được sử dụng, vui lòng tải lại trang để tạo mã mới.
+                </p>
+            </div>
+        `;
+    }
+
+    window.confirmPayment = function () {
+        const fileInput = document.getElementById('upload-proof');
+        const msg = document.getElementById('confirm-message');
+        if (!fileInput || !fileInput.files.length) {
+            msg.innerText = 'Vui lòng gửi ảnh xác nhận chuyển khoản trước khi xác nhận.';
+            msg.style.color = 'red';
+            return;
+        }
+        msg.style.color = 'green';
+        msg.innerText = 'Quý khách vui lòng kiểm tra email để xác nhận đặt thành công dịch vụ.';
+    };
+
+    function startCountdown(duration) {
+        let timer = duration;
+        const countdown = document.getElementById('countdown');
+        const interval = setInterval(() => {
+            const minutes = String(Math.floor(timer / 60)).padStart(2, '0');
+            const seconds = String(timer % 60).padStart(2, '0');
+            countdown.innerText = `${minutes}:${seconds}`;
+            if (--timer < 0) clearInterval(interval);
+        }, 1000);
+    }
+});
+</script>
 
     <style>
 .hotel-booking-box {
