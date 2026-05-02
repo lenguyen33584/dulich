@@ -1,9 +1,1 @@
-    <!-- Ảnh đại diện -->
-    <div class="tour-featured-img" style="height=600px!important;">
-    <?php
-        $img_url = get_field('anh_dai_dien_tour');
-        if (!empty($img_url)):
-    ?>
-        <img src="<?php echo esc_url($img_url); ?>" alt="<?php the_title_attribute(); ?>" class="custom-tour-thumbnail" style="height=600px!important;" />
-    <?php endif; ?>
-    </div>
+.
