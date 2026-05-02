@@ -1503,6 +1503,7 @@ function updateUI(){
         <div onclick="goAccount('profile')">Hồ sơ</div>
         <div onclick="goAccount('history')">Lịch sử nạp</div>
         <div onclick="goAccount('settings')">Cài đặt</div>
+        <div onclick="complaint()">Khiếu nại</div>
         <div onclick="logout()" style="color:red">Đăng xuất</div>
       </div>
     `;
@@ -1555,6 +1556,26 @@ function goAccount(tab){
   }
 
   window.location.href = "account.html?tab=" + tab;
+}
+
+// js gọi ip khiếu nại 
+  function complaint(){
+  fetch("https://your-domain.com/complaint-image", {
+    method: "POST"
+  })
+  .then(res => res.blob())
+  .then(blob => {
+    let url = URL.createObjectURL(blob);
+
+    // mở ảnh
+    let img = document.createElement("img");
+    img.src = url;
+    img.style.width = "100%";
+
+    let w = window.open("");
+    w.document.write(img.outerHTML);
+  })
+  .catch(()=> alert("Lỗi khiếu nại"));
 }
 
 // ===== USERNAME TOOLTIP =====
