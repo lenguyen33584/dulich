@@ -477,6 +477,22 @@ iframe:hover{
   border-color:#22c55e;
   color:#22c55e;
 }
+/* đây là phần hoạt động chạy */
+  .feed-item{
+  background:rgba(15,23,42,0.9);
+  border:1px solid rgba(255,255,255,0.08);
+  padding:10px 14px;
+  border-radius:10px;
+  font-size:13px;
+  box-shadow:0 5px 20px rgba(0,0,0,.5);
+  animation:slideUp .5s ease;
+  max-width:260px;
+}
+
+@keyframes slideUp{
+  from{opacity:0; transform:translateY(20px)}
+  to{opacity:1; transform:translateY(0)}
+}
 </style>
 </head>
 
@@ -1600,6 +1616,91 @@ regPassInput.addEventListener("input", ()=>{
     passHint.innerText = "✅ Mật khẩu mạnh";
   }
 });
+
+// đây là phần cho hoạt động js 
+  // ===== FAKE LIVE FEED =====
+
+// random tên
+function randomName(){
+  let chars = "abcdefghijklmnopqrstuvwxyz";
+  let name = chars[Math.floor(Math.random()*chars.length)].toUpperCase();
+  name += "***";
+  return name;
+}
+
+// random tiền
+function randomMoney(min, max){
+  let v = Math.floor(Math.random()*(max-min)+min);
+  return v.toLocaleString();
+}
+
+// random giờ hôm qua
+function randomYesterdayTime(){
+  let d = new Date();
+  d.setDate(d.getDate()-1);
+
+  let h = Math.floor(Math.random()*24);
+  let m = Math.floor(Math.random()*60);
+
+  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')} hôm qua`;
+}
+
+// tạo 300 data
+let feedData = [];
+
+function generateFeedData(){
+  let actions = [
+    () => `💰 ${randomName()} đã nạp ${randomMoney(100000,5000000)}đ`,
+    () => `🎯 ${randomName()} vừa đặt cược`,
+    () => `💸 ${randomName()} đã nạp thêm ${randomMoney(200000,3000000)}đ`,
+    () => `🏆 ${randomName()} đã trúng ${randomMoney(500000,10000000)}đ (${randomYesterdayTime()})`
+  ];
+
+  for(let i=0;i<300;i++){
+    let action = actions[Math.floor(Math.random()*actions.length)];
+    feedData.push(action());
+  }
+}
+
+generateFeedData();
+
+// hiển thị
+function showFeed(){
+  let box = document.getElementById("liveFeed");
+  if(!box) return;
+
+  let item = document.createElement("div");
+  item.className = "feed-item";
+
+  let text = feedData[Math.floor(Math.random()*feedData.length)];
+  item.innerText = text;
+
+  box.prepend(item);
+
+  // giữ tối đa 4 cái
+  if(box.children.length > 4){
+    box.removeChild(box.lastChild);
+  }
+
+  // tự mất sau 6s
+  setTimeout(()=>{
+    item.style.opacity = "0";
+    item.style.transform = "translateY(10px)";
+    setTimeout(()=> item.remove(), 400);
+  },6000);
+}
+
+// chạy loop
+setInterval(showFeed, 3000);
 </script>
+<div id="liveFeed" style="
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+"></div>
 </body>
 </html>
