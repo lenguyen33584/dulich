@@ -478,20 +478,34 @@ iframe:hover{
   color:#22c55e;
 }
 /* đây là phần hoạt động chạy */
-  .feed-item{
-  background:rgba(15,23,42,0.9);
-  border:1px solid rgba(255,255,255,0.08);
+.feed-item{
+  background: rgba(255,255,255,0.08); /* trắng trong */
+  backdrop-filter: blur(12px);
+
+  border:1px solid rgba(255,255,255,0.25);
+
   padding:10px 14px;
-  border-radius:10px;
+  border-radius:12px;
+
   font-size:13px;
-  box-shadow:0 5px 20px rgba(0,0,0,.5);
+  color:#fff;
+
+  box-shadow:
+    0 5px 20px rgba(0,0,0,.6),
+    0 0 15px rgba(255,255,255,0.15);
+
   animation:slideUp .5s ease;
   max-width:260px;
+
+  /* glow nhẹ */
+  transition:.3s;
 }
 
-@keyframes slideUp{
-  from{opacity:0; transform:translateY(20px)}
-  to{opacity:1; transform:translateY(0)}
+.feed-item:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 10px 25px rgba(0,0,0,.8),
+    0 0 25px rgba(255,255,255,0.25);
 }
 </style>
 </head>
@@ -1635,14 +1649,15 @@ function randomMoney(min, max){
 }
 
 // random giờ hôm qua
-function randomYesterdayTime(){
+function getYesterdayDate(){
   let d = new Date();
-  d.setDate(d.getDate()-1);
+  d.setDate(d.getDate() - 1);
 
-  let h = Math.floor(Math.random()*24);
-  let m = Math.floor(Math.random()*60);
+  let day = String(d.getDate()).padStart(2,'0');
+  let month = String(d.getMonth()+1).padStart(2,'0');
+  let year = d.getFullYear();
 
-  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')} hôm qua`;
+  return `${day}/${month}/${year}`;
 }
 
 // tạo 300 data
@@ -1653,7 +1668,7 @@ function generateFeedData(){
     () => `💰 ${randomName()} đã nạp ${randomMoney(100000,5000000)}đ`,
     () => `🎯 ${randomName()} vừa đặt cược`,
     () => `💸 ${randomName()} đã nạp thêm ${randomMoney(200000,3000000)}đ`,
-    () => `🏆 ${randomName()} đã trúng ${randomMoney(500000,10000000)}đ (${randomYesterdayTime()})`
+    () => `🏆 ${randomName()} đã trúng ${randomMoney(500000,10000000)}đ (hôm qua ${getYesterdayDate()})`
   ];
 
   for(let i=0;i<300;i++){
