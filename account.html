@@ -1,3 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account</title>
+
+<style>
+:root{
+  --main:#7a1f2b;
+  --soft:#a83244;
+}
+
+body{
+  margin:0;
+  font-family:Segoe UI;
+  background:#020617;
+  color:#fff;
+}
+
+/* LAYOUT */
+.wrapper{display:flex;height:100vh;}
+
+.sidebar{
+  width:240px;
+  background:#0f172a;
+  padding:20px;
+  border-right:1px solid #1e293b;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.logo{font-weight:700;color:#f87171;}
+
+.menu-item{
+  padding:12px;
+  border-radius:10px;
+  cursor:pointer;
+  background:#020617;
+}
+
+.menu-item:hover{background:#1e293b;}
+
+.menu-item.active{
+  background:linear-gradient(135deg,var(--main),var(--soft));
+}
+
+.content{
+  flex:1;
+  padding:20px;
+  overflow:auto;
+}
+
+.card{
+  background:#0f172a;
+  padding:20px;
+  border-radius:14px;
+  margin-bottom:20px;
+}
+
+/* FORM */
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+@media(max-width:600px){
+  .form-grid{grid-template-columns:1fr;}
+}
+
+.input-group{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.input-group label{
+  font-size:13px;
+  color:#cbd5f5;
+}
+
+input{
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #1f2937;
+  background:#020617;
+  color:#fff;
+}
+
+.btn{
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--main),var(--soft));
+  color:#fff;
+}
+
+/* STATUS */
+.status{
+  padding:5px 10px;
+  border-radius:6px;
+  font-size:13px;
+}
+
+.pending{background:#facc15;color:#000;}
+.win{background:#22c55e;color:#000;}
+.lose{background:#ef4444;color:#fff;}
+
+/* POPUP */
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.popup-box{
+  background:#0f172a;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+  <div class="sidebar">
+    <div class="logo">🔥 ACCOUNT</div>
+
+    <div class="menu-item" data-tab="profile">👤 Hồ sơ</div>
+    <div class="menu-item" data-tab="history">📜 Lịch sử</div>
+    <div class="menu-item" data-tab="withdraw">💸 Rút tiền</div>
+    <div class="menu-item" data-tab="settings">⚙️ Cài đặt</div>
+
+    <hr>
+
+    <div class="menu-item" onclick="goHome()">🏠 Trang chủ</div>
+    <div class="menu-item" onclick="logout()">🚪 Đăng xuất</div>
+  </div>
+
+  <div class="content">
+    <div id="contentBox"></div>
+  </div>
+
+</div>
+
+<!-- POPUP -->
+<div class="popup" id="verifyPopup">
+  <div class="popup-box">
+    <h3>⏳ Đang xác minh</h3>
+    <p>Thông tin của bạn đang được kiểm duyệt</p>
+  </div>
+</div>
+
 <script>
 let user = localStorage.getItem("currentUser");
 
@@ -6,27 +168,23 @@ if(!user){
   location.href="index.html";
 }
 
-// ===== DATA =====
 function getData(){
   return JSON.parse(localStorage.getItem("data_"+user)||"{}");
 }
+
 function saveData(d){
   localStorage.setItem("data_"+user, JSON.stringify(d));
 }
 
-// ===== NAV =====
 function goHome(){
   location.href="index.html";
 }
 
 function logout(){
-  if(confirm("Bạn chắc chắn đăng xuất?")){
-    localStorage.removeItem("currentUser");
-    location.href="index.html";
-  }
+  localStorage.removeItem("currentUser");
+  location.href="index.html";
 }
 
-// ===== ACTIVE TAB =====
 function setActive(tab){
   document.querySelectorAll(".menu-item").forEach(el=>{
     el.classList.remove("active");
@@ -34,63 +192,96 @@ function setActive(tab){
   });
 }
 
-// ===== RENDER =====
+function isProfileComplete(profile){
+  return profile &&
+    profile.fullname &&
+    profile.bank &&
+    profile.bankName;
+}
+
 function render(tab){
   let box = document.getElementById("contentBox");
   let data = getData();
+
   setActive(tab);
 
   // ===== PROFILE =====
   if(tab==="profile"){
     box.innerHTML = `
-    <div class="card">
-      <h2>👤 Hồ sơ</h2>
-      <h3>💰 Số dư: ${(data.balance||0).toLocaleString()}đ</h3>
+      <div class="card">
+        <h2>👤 Cập nhật hồ sơ</h2>
 
-      <div class="form-grid">
-        <input id="fullname" placeholder="Họ tên">
-        <input id="phone" placeholder="SĐT">
-        <input id="email" placeholder="Email">
-        <input id="bank" placeholder="Số tài khoản">
-        <input id="bankName" placeholder="Ngân hàng">
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Họ và tên</label>
+            <input id="fullname">
+          </div>
+
+          <div class="input-group">
+            <label>Số tài khoản</label>
+            <input id="bank">
+          </div>
+
+          <div class="input-group">
+            <label>Ngân hàng</label>
+            <input id="bankName">
+          </div>
+        </div>
+
+        <br>
+        <button class="btn" onclick="saveProfile()">Lưu</button>
       </div>
-
-      <br>
-      <button class="btn" onclick="saveProfile()">Lưu</button>
-    </div>
     `;
-
-    let p = data.profile || {};
-
-    fullname.value = p.fullname || "";
-    phone.value = p.phone || "";
-    email.value = p.email || "";
-    bank.value = p.bank || "";
-    bankName.value = p.bankName || "";
   }
 
   // ===== HISTORY =====
   if(tab==="history"){
-    let bets = (data.bets || []).sort((a,b)=>b.time - a.time);
+    let bets = data.bets || [];
 
-    let html = bets.map(b=>{
-      let text = b.status==="win" ? "🏆 Thắng"
-               : b.status==="lose" ? "❌ Thua"
-               : "⏳ Đang chờ";
-
-      return `
+    let html = bets.map(b=>`
       <div class="row">
-        <span>🎯 ${b.so} (${b.loai})</span>
-        <span>${b.tien.toLocaleString()}đ</span>
-        <span class="status ${b.status||'pending'}">${text}</span>
+        🎯 ${b.so} (${b.loai}) - ${b.tien.toLocaleString()}đ
+        <span class="status ${b.status||'pending'}">
+          ${b.status||'pending'}
+        </span>
       </div>
-      `;
-    }).join("");
+    `).join("");
 
     box.innerHTML = `
       <div class="card">
-        <h2>📜 Lịch sử</h2>
+        <h2>📜 Lịch sử cược</h2>
         ${html || "Chưa có dữ liệu"}
+      </div>
+    `;
+  }
+
+  // ===== WITHDRAW =====
+  if(tab==="withdraw"){
+    let profile = data.profile;
+
+    if(!isProfileComplete(profile)){
+      box.innerHTML = `
+        <div class="card">
+          <h2>⚠️ Chưa đủ thông tin</h2>
+          <p>Vui lòng cập nhật hồ sơ trước khi rút tiền</p>
+          <button class="btn" onclick="render('profile')">
+            Điền hồ sơ
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    box.innerHTML = `
+      <div class="card">
+        <h2>💸 Rút tiền</h2>
+
+        <input id="withdrawAmount" placeholder="Số tiền">
+
+        <br><br>
+        <button class="btn" onclick="submitWithdraw()">
+          Yêu cầu rút
+        </button>
       </div>
     `;
   }
@@ -104,7 +295,10 @@ function render(tab){
         <input id="oldPass" type="password" placeholder="Mật khẩu cũ">
         <input id="newPass" type="password" placeholder="Mật khẩu mới">
 
-        <button class="btn" onclick="changePass()">Đổi mật khẩu</button>
+        <br><br>
+        <button class="btn" onclick="changePass()">
+          Đổi mật khẩu
+        </button>
       </div>
     `;
   }
@@ -114,34 +308,36 @@ function render(tab){
 function saveProfile(){
   let data = getData();
 
-  if(phone.value && !/^\d{9,11}$/.test(phone.value)){
-    return alert("SĐT không hợp lệ");
-  }
-
-  if(email.value && !/^\S+@\S+\.\S+$/.test(email.value)){
-    return alert("Email không hợp lệ");
-  }
-
   data.profile = {
-    fullname: fullname.value,
-    phone: phone.value,
-    email: email.value,
-    bank: bank.value,
-    bankName: bankName.value
+    fullname: document.getElementById("fullname").value,
+    bank: document.getElementById("bank").value,
+    bankName: document.getElementById("bankName").value
   };
 
   saveData(data);
-  alert("Đã lưu!");
+
+  alert("Đã lưu hồ sơ!");
+}
+
+// ===== WITHDRAW =====
+function submitWithdraw(){
+  let popup = document.getElementById("verifyPopup");
+
+  popup.style.display = "flex";
+
+  setTimeout(()=>{
+    popup.style.display = "none";
+  },2000);
 }
 
 // ===== CHANGE PASS =====
 function changePass(){
-  let oldP = oldPass.value;
-  let newP = newPass.value;
+  let oldP = document.getElementById("oldPass").value;
+  let newP = document.getElementById("newPass").value;
 
   let users = JSON.parse(localStorage.getItem("users")||"{}");
 
-  if(!users[user] || users[user].password !== oldP){
+  if(users[user].password !== oldP){
     return alert("Sai mật khẩu");
   }
 
@@ -152,7 +348,7 @@ function changePass(){
   users[user].password = newP;
   localStorage.setItem("users", JSON.stringify(users));
 
-  alert("Đổi mật khẩu thành công");
+  alert("Đổi thành công");
 }
 
 // ===== MENU =====
@@ -162,9 +358,8 @@ document.querySelectorAll(".menu-item").forEach(el=>{
   }
 });
 
-// ===== LOAD TAB FROM URL =====
-let urlParams = new URLSearchParams(window.location.search);
-let tab = urlParams.get("tab") || "profile";
-
-render(tab);
+render("profile");
 </script>
+
+</body>
+</html>
