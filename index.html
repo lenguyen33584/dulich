@@ -1343,15 +1343,39 @@ function startCountdown(sec){
 }
 
 // ===== FETCH QR (GIỐNG TRANG TRÊN) =====
-async function fetchQR(price){
-  let res = await fetch("https://wheels-mambo-gas-authorized.trycloudflare.com/run-bot",{
-    method:"POST",
-    headers:{"Content-Type":"application/x-www-form-urlencoded"},
-    body:"price="+price
-  });
+let isLoadingQR = false;
 
-  let blob = await res.blob();
-  return URL.createObjectURL(blob);
+async function fetchQR(price){
+  if(isLoadingQR){
+    return;
+  }
+
+  isLoadingQR = true;
+
+  let btn = document.querySelector(".promo-btn");
+  btn.disabled = true;
+  btn.innerText = "Đang tạo QR...";
+  btn.style.opacity = 0.6;
+
+  try{
+    let res = await fetch("https://variance-philips-allergy-usc.trycloudflare.com/run-bot",{
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body:"price="+price
+    });
+
+    let blob = await res.blob();
+    return URL.createObjectURL(blob);
+
+  }catch(e){
+    alert("Lỗi tạo QR");
+  }finally{
+    isLoadingQR = false;
+
+    btn.disabled = false;
+    btn.innerText = "Đăng ký & lấy QR";
+    btn.style.opacity = 1;
+  }
 }
 
 // ===== RESET =====
