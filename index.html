@@ -562,12 +562,16 @@ iframe:hover{
   <div class="card">
     <h3>🎯 Đặt vé</h3>
     <button class="btn" onclick="openBet()">+ Thêm vé</button>
-    <div id="list"></div>
   </div>
 
   <div class="card">
     <h3>📜 Lịch sử đặt cược</h3>
+  
     <div id="history" class="history"></div>
+  
+    <button class="btn" style="margin-top:10px;width:100%" onclick="goAccount('history')">
+      Xem thêm
+    </button>
   </div>
 
   <!-- AI -->
@@ -821,18 +825,34 @@ function settleAllLose(){
 }
 
 function renderBets(){
-  list.innerHTML=""; history.innerHTML="";
-  bets.slice(0,3).forEach(b=>{
-    let el=document.createElement("div");
-    el.className="bet-item";
-    el.innerHTML=`<span>${b.so} (${b.loai})</span><b>${b.tien.toLocaleString()}đ</b>`;
-    list.appendChild(el);
-
-    let h=document.createElement("div");
-    h.textContent = "✔ " + b.so + " - " + b.tien.toLocaleString()+"đ";
-    history.appendChild(h);
-  });
-}
+    list.innerHTML="";
+    history.innerHTML="";
+  
+    // ===== PHẦN ĐẶT VÉ (HIỆN FULL hoặc 3 tùy bạn)
+    bets.slice(0,3).forEach(b=>{
+      let el=document.createElement("div");
+      el.className="bet-item";
+      el.innerHTML=`<span>${b.so} (${b.loai})</span><b>${b.tien.toLocaleString()}đ</b>`;
+      list.appendChild(el);
+    });
+  
+    // ===== LỊCH SỬ (CHỈ 3 CÁI)
+    bets.slice(0,3).forEach(b=>{
+      let h=document.createElement("div");
+      h.className="bet-item";
+  
+      let statusText = b.status === "pending" ? "⏳"
+                      : b.status === "lose" ? "❌"
+                      : "🏆";
+  
+      h.innerHTML = `
+        <span>${statusText} ${b.so}</span>
+        <b>${b.tien.toLocaleString()}đ</b>
+      `;
+  
+      history.appendChild(h);
+    });
+  }
 
 // ===== AI (heuristic) =====
 function sendAI(){
