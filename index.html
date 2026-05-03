@@ -526,6 +526,7 @@ iframe:hover{
     </div>
 
     <button class="btn" onclick="openPromo()">Nạp</button>
+    <button class="btn" style="background:#22c55e" onclick="withdraw()">Rút</button>
     <div class="gift-icon"
   onclick="event.stopPropagation(); openGiftPopup();"
   style="position:relative;cursor:pointer">
@@ -663,12 +664,6 @@ iframe:hover{
         </div>
       </div>
 
-      <input id="regEmail" placeholder="Email">
-
-      <input id="regFirstName" placeholder="Tên*" required>
-
-      <input id="regLastName" placeholder="Họ*" required>
-
       <div class="input-wrap">
         <input id="regPass" type="password" placeholder="Mật khẩu*" required>
         <div id="regPassHint" class="input-tooltip">
@@ -722,14 +717,6 @@ iframe:hover{
     <p>Áp dụng cho các thẻ nạp từ 1 triệu trở lên</p>
 
     <form id="promo-form" class="promo-form">
-      <label>Họ tên
-        <input type="text" id="promo-name" required>
-      </label>
-
-      <label>SĐT
-        <input type="tel" id="promo-phone" required>
-      </label>
-
       <label>Số tiền
         <input type="number" id="promo-amount" min="1000000" required>
       </label>
@@ -1276,6 +1263,33 @@ document.getElementById("promo-close").onclick = ()=>{
   resetPopup();
 };
 
+// js đoạn rút tiền
+function withdraw(){
+  let u = getCurrentUser();
+  if(!u){
+    alert("Bạn cần đăng nhập");
+    openLogin();
+    return;
+  }
+
+  let data = JSON.parse(localStorage.getItem("data_"+u) || "{}");
+
+  let profile = data.profile || {};
+
+  // kiểm tra đủ info
+  if(
+    !profile.fullname ||
+    !profile.bank ||
+    !profile.bankName
+  ){
+    alert("⚠️ Bạn cần cập nhật hồ sơ trước khi rút tiền!");
+    window.location.href = "account.html?tab=profile";
+    return;
+  }
+
+  // nếu đủ thì hiện popup
+  showWithdrawPopup();
+}  
 // ===== ELEMENT =====
 const form = document.getElementById("promo-form");
 const amountEl = document.getElementById("promo-amount");
@@ -1495,10 +1509,21 @@ function openRegister(){
 
 // đăng ký
 function register(){
-  let u = document.getElementById("regUser").value.trim(); // dùng email làm user
-  let p = document.getElementById("regPass").value.trim();
+  let u = regUser.value.trim();
+  let p = regPass.value.trim();
+  let p2 = regPass2.value.trim();
 
-  if(!u || !p) return alert("Nhập đủ thông tin");
+  if(!u || !p || !p2){
+    return alert("Nhập đủ thông tin");
+  }
+
+  if(p !== p2){
+    return alert("Mật khẩu nhập lại không khớp");
+  }
+
+  if(p.length < 6){
+    return alert("Mật khẩu ≥ 6 ký tự");
+  }
 
   let users = JSON.parse(localStorage.getItem("users") || "{}");
 
@@ -1512,8 +1537,8 @@ function register(){
   localStorage.setItem("currentUser", u);
 
   alert("Đăng ký thành công!");
+
   registerModal.style.display = "none";
-  loginModal.style.display = "none"; // 👈 thêm dòng này
 
   loadUserData();
   updateUI();
@@ -1582,7 +1607,7 @@ function updateUI(){
       👤 ${u}
       <div class="user-dropdown">
         <div onclick="goAccount('profile')">Hồ sơ</div>
-        <div onclick="goAccount('history')">Lịch sử nạp</div>
+        <div onclick="goAccount('history')">Lịch sử đặt cược</div>
         <div onclick="goAccount('settings')">Cài đặt</div>
         <div onclick="complaint()">Khiếu nại</div>
         <div onclick="logout()" style="color:red">Đăng xuất</div>
@@ -1813,7 +1838,10 @@ function showFeed(){
     setTimeout(()=> item.remove(), 400);
   },6000);
 }
-
+  // rút tiền
+function showWithdrawPopup(){
+  document.getElementById("withdrawModal").style.display = "flex";
+}
 // function đóng chung hết các pop up 
   function closeModal(id){
   document.getElementById(id).style.display = "none";
@@ -1837,5 +1865,16 @@ setInterval(showFeed, 3000);
   flex-direction:column;
   gap:8px;
 "></div>
+
+  <div class="modal" id="withdrawModal">
+  <div class="modal-box">
+    <h3>💸 Yêu cầu rút tiền</h3>
+
+    <p>⏳ Hệ thống đang xác minh thông tin của bạn.</p>
+    <p>Vui lòng chờ xử lý (1-5 phút)</p>
+
+    <button class="btn" onclick="closeModal('withdrawModal')">Đóng</button>
+  </div>
+</div>
 </body>
 </html>
