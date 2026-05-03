@@ -822,7 +822,7 @@ function settleAllLose(){
 
 function renderBets(){
   list.innerHTML=""; history.innerHTML="";
-  bets.slice(0,50).forEach(b=>{
+  bets.slice(0,3).forEach(b=>{
     let el=document.createElement("div");
     el.className="bet-item";
     el.innerHTML=`<span>${b.so} (${b.loai})</span><b>${b.tien.toLocaleString()}đ</b>`;
@@ -1688,8 +1688,14 @@ function randomName(){
 }
 
 // random tiền
-function randomMoney(min, max){
-  let v = Math.floor(Math.random()*(max-min)+min);
+function randomMoney(){
+  let arr = [
+    100000,200000,300000,500000,
+    1000000,2000000,3000000,5000000,
+    10000000
+  ];
+
+  let v = arr[Math.floor(Math.random()*arr.length)];
   return v.toLocaleString();
 }
 
