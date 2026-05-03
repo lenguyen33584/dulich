@@ -604,7 +604,11 @@ iframe:hover{
 
 <!-- MODAL BET -->
 <div class="modal" id="betModal">
-<div class="modal-box">
+<div class="modal-box" style="position:relative">
+  <button onclick="closeModal('loginModal')" style="
+    position:absolute; top:10px; right:12px;
+    background:none; border:none; color:#fff; font-size:18px; cursor:pointer;
+  ">✖</button>
 <h3>Đặt vé</h3>
 <input id="so" placeholder="Số">
 <select id="loai">
@@ -620,7 +624,11 @@ iframe:hover{
 
 <!-- LOGIN -->
 <div class="modal" id="loginModal">
-  <div class="modal-box">
+  <div class="modal-box" style="position:relative">
+  <button onclick="closeModal('betModal')" style="
+    position:absolute; top:10px; right:12px;
+    background:none; border:none; color:#fff; font-size:18px; cursor:pointer;
+  ">✖</button>
     <h3>Đăng nhập</h3>
     <input id="loginUser" placeholder="Tài khoản">
     <input id="loginPass" type="password" placeholder="Mật khẩu">
@@ -631,7 +639,11 @@ iframe:hover{
 <!-- REGISTER -->
 <!-- REGISTER FULL -->
 <div class="modal" id="registerModal">
-  <div class="modal-box" style="max-width:500px">
+  <div class="modal-box" style="max-width:500px; position:relative">
+  <button onclick="closeModal('registerModal')" style="
+    position:absolute; top:10px; right:12px;
+    background:none; border:none; color:#fff; font-size:18px; cursor:pointer;
+  ">✖</button>
 
     <h3>Đăng ký tài khoản</h3>
 
@@ -1776,6 +1788,17 @@ function showFeed(){
   },6000);
 }
 
+// function đóng chung hết các pop up 
+  function closeModal(id){
+  document.getElementById(id).style.display = "none";
+}
+document.querySelectorAll(".modal").forEach(modal=>{
+  modal.addEventListener("click", function(e){
+    if(e.target === modal){
+      modal.style.display = "none";
+    }
+  });
+});
 // chạy loop
 setInterval(showFeed, 3000);
 </script>
