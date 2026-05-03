@@ -633,6 +633,13 @@ iframe:hover{
     <input id="loginUser" placeholder="Tài khoản">
     <input id="loginPass" type="password" placeholder="Mật khẩu">
     <button class="btn" onclick="login()">Đăng nhập</button>
+    <p style="margin-top:10px; font-size:13px; text-align:center;">
+      Chưa có tài khoản?
+      <span style="color:#38bdf8; cursor:pointer;"
+        onclick="openRegister(); closeModal('loginModal')">
+        Đăng ký
+      </span>
+    </p>
   </div>
 </div>
 
@@ -1464,9 +1471,12 @@ overlay.addEventListener("click", function(e){
 
 // mở modal
 function openLogin(){
+  registerModal.style.display = "none"; // 👈 thêm
   loginModal.style.display = "flex";
 }
+
 function openRegister(){
+  loginModal.style.display = "none"; // 👈 thêm
   registerModal.style.display = "flex";
 }
 
@@ -1490,6 +1500,7 @@ function register(){
 
   alert("Đăng ký thành công!");
   registerModal.style.display = "none";
+  loginModal.style.display = "none"; // 👈 thêm dòng này
 
   loadUserData();
   updateUI();
