@@ -1,1 +1,307 @@
-.
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Lottery UI</title>
+
+<style>
+body{
+    margin:0;
+    font-family:"Segoe UI",sans-serif;
+    background:#f3f5f9;
+}
+
+/* HEADER */
+.header{
+    display:flex;
+    justify-content:space-between;
+    padding:15px 25px;
+    background:#fff;
+    border-bottom:1px solid #ddd;
+}
+
+.balls span{
+    width:42px;height:42px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    color:#fff;
+    font-weight:bold;
+    margin:0 5px;
+    background:linear-gradient(145deg,#5a9df9,#2d6cdf);
+}
+
+/* LAYOUT */
+.container{display:flex;padding:20px}
+.left{flex:3;margin-right:20px}
+.right{flex:1;background:#fff;border-radius:12px;padding:15px}
+
+/* BOX */
+.box{background:#fff;border-radius:12px;padding:15px}
+
+/* TABS */
+.tabs{display:flex;gap:15px;border-bottom:1px solid #eee;padding-bottom:10px}
+.tab{cursor:pointer;padding:8px 14px;border-radius:6px}
+.tab.active{background:#e7f0ff;color:#2d6cdf;font-weight:bold}
+
+/* SUB */
+.subtabs{margin-top:10px;display:flex;gap:10px}
+.subtab{background:#f0f2f6;padding:6px 12px;border-radius:6px;cursor:pointer}
+.subtab.active{background:#2d6cdf;color:white}
+
+/* MODE */
+.mode-tabs{margin-top:10px;display:flex;gap:10px;justify-content:flex-end}
+.mode{padding:6px 12px;border-radius:6px;background:#eee;cursor:pointer}
+.mode.active{background:#2d6cdf;color:#fff}
+
+/* NUMBER */
+.row{margin-top:15px}
+.label{margin-bottom:5px;color:#555}
+.numbers span{
+    width:38px;height:38px;border-radius:50%;
+    border:1px solid #ccc;
+    display:inline-flex;align-items:center;justify-content:center;
+    margin:3px;cursor:pointer;background:#fff;
+    transition:0.2s;
+}
+.numbers span:hover{border-color:#2d6cdf}
+.numbers span.active{
+    background:#2d6cdf;color:#fff;border:none;
+    box-shadow:0 3px 8px rgba(0,0,0,0.15);
+}
+
+/* ACTION */
+.actions{margin-top:5px}
+.actions button{
+    margin:2px;padding:5px 8px;border:none;border-radius:5px;
+    cursor:pointer;background:#e6ebf5;
+}
+.actions button:hover{background:#2d6cdf;color:#fff}
+
+/* INFO */
+.info{margin-top:15px;display:flex;justify-content:space-between;align-items:center}
+.badge{background:#e7f0ff;padding:5px 10px;border-radius:6px;color:#2d6cdf;font-weight:bold}
+
+/* BUTTON */
+.btn{padding:8px 15px;border:none;border-radius:6px;color:#fff;cursor:pointer}
+.blue{background:#2d6cdf}
+.orange{background:#ff8c1a}
+.gray{background:#ccc;color:#333}
+
+.table{margin-top:15px;border-top:1px solid #eee;padding:20px;text-align:center;color:#888}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div>
+        <b>Miền Bắc</b><br>Kết quả 04/05/2026
+    </div>
+    <div class="balls">
+        <span>1</span><span>1</span><span>2</span><span>5</span><span>1</span>
+    </div>
+</div>
+
+<div class="container">
+
+<div class="left">
+<div class="box">
+
+<!-- MAIN TAB -->
+<div class="tabs">
+    <div class="tab active">Bao lô</div>
+    <div class="tab">Lô xiên</div>
+    <div class="tab">Đánh đề</div>
+</div>
+
+<!-- SUB TAB -->
+<div class="subtabs">
+    <div class="subtab active" data-rate="27000">Lô 2 số</div>
+    <div class="subtab" data-rate="23000">Lô 2 số đầu</div>
+    <div class="subtab" data-rate="1000">Lô 2 số 1K</div>
+</div>
+
+<!-- MODE -->
+<div class="mode-tabs">
+    <div class="mode active" data-mode="chon">Chọn số</div>
+    <div class="mode" data-mode="input">Con số</div>
+</div>
+
+<!-- CHỌN -->
+<div id="chon">
+
+<div class="row">
+<div class="label">Chục</div>
+<div class="numbers" id="chuc"></div>
+<div class="actions">
+<button onclick="selectRow('chuc','all')">Toàn bộ</button>
+<button onclick="selectRow('chuc','tai')">Tài</button>
+<button onclick="selectRow('chuc','xiu')">Xỉu</button>
+<button onclick="selectRow('chuc','le')">Lẻ</button>
+<button onclick="selectRow('chuc','chan')">Chẵn</button>
+<button onclick="clearRow('chuc')">Xóa</button>
+</div>
+</div>
+
+<div class="row">
+<div class="label">Đơn vị</div>
+<div class="numbers" id="donvi"></div>
+<div class="actions">
+<button onclick="selectRow('donvi','all')">Toàn bộ</button>
+<button onclick="selectRow('donvi','tai')">Tài</button>
+<button onclick="selectRow('donvi','xiu')">Xỉu</button>
+<button onclick="selectRow('donvi','le')">Lẻ</button>
+<button onclick="selectRow('donvi','chan')">Chẵn</button>
+<button onclick="clearRow('donvi')">Xóa</button>
+</div>
+</div>
+
+</div>
+
+<!-- INPUT -->
+<div id="input" style="display:none;margin-top:10px;">
+<textarea style="width:100%;height:80px;border-radius:8px;padding:10px;border:1px solid #ccc"></textarea>
+</div>
+
+<!-- INFO -->
+<div class="info">
+<div>
+<span class="badge">Tỉ lệ: 1 = <span id="rate">99.9</span></span><br>
+Đã chọn: <b id="count">0</b> mục |
+Số tiền: <b id="money">0</b> đ
+</div>
+
+<div>
+<button onclick="minus()">-</button>
+<span id="multi">1</span>
+<button onclick="plus()">+</button>
+
+<button class="btn blue">Cược ngay</button>
+<button class="btn orange">Thêm số</button>
+<button class="btn gray" onclick="resetAll()">Cài lại</button>
+</div>
+</div>
+
+<div class="table">Không có dữ liệu</div>
+
+</div>
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+<div id="kq"></div>
+</div>
+
+</div>
+
+<script>
+let rate=27000;
+let multi=1;
+
+/* render số */
+function render(id){
+    let box=document.getElementById(id);
+    box.innerHTML="";
+    for(let i=0;i<=9;i++){
+        let s=document.createElement("span");
+        s.innerText=i;
+        s.onclick=()=>{s.classList.toggle("active");calc();}
+        box.appendChild(s);
+    }
+}
+render("chuc");
+render("donvi");
+
+/* tab click */
+document.querySelectorAll(".subtab").forEach(tab=>{
+    tab.onclick=()=>{
+        document.querySelectorAll(".subtab").forEach(t=>t.classList.remove("active"));
+        tab.classList.add("active");
+
+        rate=parseInt(tab.dataset.rate);
+        document.getElementById("rate").innerText=rate.toLocaleString();
+        calc();
+    }
+});
+
+/* mode */
+document.querySelectorAll(".mode").forEach(m=>{
+    m.onclick=()=>{
+        document.querySelectorAll(".mode").forEach(x=>x.classList.remove("active"));
+        m.classList.add("active");
+
+        let mode=m.dataset.mode;
+        document.getElementById("chon").style.display=mode=="chon"?"block":"none";
+        document.getElementById("input").style.display=mode=="input"?"block":"none";
+    }
+});
+
+/* chọn */
+function selectRow(id,type){
+    let nums=document.querySelectorAll("#"+id+" span");
+    nums.forEach(n=>{
+        let v=parseInt(n.innerText);
+
+        if(type=="all") n.classList.add("active");
+        if(type=="tai") n.classList.toggle("active",v>=5);
+        if(type=="xiu") n.classList.toggle("active",v<5);
+        if(type=="le") n.classList.toggle("active",v%2==1);
+        if(type=="chan") n.classList.toggle("active",v%2==0);
+    });
+    calc();
+}
+
+function clearRow(id){
+    document.querySelectorAll("#"+id+" span")
+    .forEach(n=>n.classList.remove("active"));
+    calc();
+}
+
+/* tính */
+function calc(){
+    let c=document.querySelectorAll("#chuc .active").length;
+    let d=document.querySelectorAll("#donvi .active").length;
+
+    let count=c*d;
+    let money=count*rate*multi;
+
+    document.getElementById("count").innerText=count;
+    document.getElementById("money").innerText=money.toLocaleString();
+}
+
+/* nhân */
+function plus(){multi++;update()}
+function minus(){if(multi>1)multi--;update()}
+function update(){
+    document.getElementById("multi").innerText=multi;
+    calc();
+}
+
+/* reset */
+function resetAll(){
+    clearRow("chuc");
+    clearRow("donvi");
+    multi=1;
+    update();
+}
+
+/* embed kết quả */
+document.getElementById("kq").innerHTML=`
+<script src="//www.minhngoc.net.vn/jquery/jquery-1.7.2.js"><\/script>
+<link rel="stylesheet" href="//www.minhngoc.net.vn/style/bangketqua_mini.css"/>
+<div id="box_kqxs_minhngoc">
+<script>
+bgcolor="#fff";
+titlecolor="#333";
+dbcolor="#000";
+fsize="12px";
+kqwidth="100%";
+<\/script>
+<script src="//www.minhngoc.net.vn/getkqxs/mien-bac.js"><\/script>
+</div>`;
+</script>
+
+</body>
+</html>
